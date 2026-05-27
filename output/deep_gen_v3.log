@@ -1,0 +1,610 @@
+nohup: ignoring input
+[Config] CUDA detected: NVIDIA RTX A6000 x2
+[Utils] Random seed set to 42
+============================================================
+  1D-DDPM Generation Pipeline
+============================================================
+  Device:       cuda
+  Checkpoint:   /home/u00134/src/logs/deep_v3/checkpoint_final.pt
+  Scaler:       /home/u00134/src/logs/deep_v3/scaler.pt
+  Num samples:  10000
+  Batch size:   256
+  Use EMA:      True
+  Output:       /home/u00134/src/output/deep_v3.csv
+============================================================
+
+[Step 1] Loading scaler...
+[Scaler] Parameters loaded from /home/u00134/src/logs/deep_v3/scaler.pt
+  sp500: mean=0.000315, std=0.010551
+  DGS10: mean=0.000026, std=0.066899
+  Found run configuration: /home/u00134/src/logs/deep_v3/config.json
+  Loaded model config: channel_dims=[256, 512, 1024], time_emb_dim=512, T=500
+
+[Step 2] Loading model...
+  Loaded EMA weights
+  Trained epoch: 999
+  U-Net parameters: 42,121,730
+
+[Step 3] Generating 10000 paths...
+
+  --- Batch 1 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.456, 4.179]
+  [Scheduler] Reverse step 450/500  x range: [-4.301, 4.757]
+  [Scheduler] Reverse step 400/500  x range: [-4.985, 4.259]
+  [Scheduler] Reverse step 350/500  x range: [-4.163, 4.711]
+  [Scheduler] Reverse step 300/500  x range: [-4.210, 4.985]
+  [Scheduler] Reverse step 250/500  x range: [-4.463, 4.436]
+  [Scheduler] Reverse step 200/500  x range: [-4.268, 4.776]
+  [Scheduler] Reverse step 150/500  x range: [-4.685, 4.593]
+  [Scheduler] Reverse step 100/500  x range: [-5.096, 4.978]
+  [Scheduler] Reverse step  50/500  x range: [-5.094, 5.012]
+  [Scheduler] Reverse step   0/500  x range: [-4.981, 4.993]
+  Generated: 256/10000
+
+  --- Batch 2 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.346, 4.285]
+  [Scheduler] Reverse step 450/500  x range: [-4.010, 4.546]
+  [Scheduler] Reverse step 400/500  x range: [-4.294, 4.075]
+  [Scheduler] Reverse step 350/500  x range: [-4.313, 4.065]
+  [Scheduler] Reverse step 300/500  x range: [-4.248, 3.862]
+  [Scheduler] Reverse step 250/500  x range: [-4.382, 4.513]
+  [Scheduler] Reverse step 200/500  x range: [-5.340, 4.479]
+  [Scheduler] Reverse step 150/500  x range: [-5.204, 4.583]
+  [Scheduler] Reverse step 100/500  x range: [-5.196, 5.189]
+  [Scheduler] Reverse step  50/500  x range: [-4.807, 4.875]
+  [Scheduler] Reverse step   0/500  x range: [-4.994, 4.984]
+  Generated: 512/10000
+
+  --- Batch 3 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-5.388, 4.184]
+  [Scheduler] Reverse step 450/500  x range: [-4.645, 4.270]
+  [Scheduler] Reverse step 400/500  x range: [-4.236, 4.416]
+  [Scheduler] Reverse step 350/500  x range: [-4.143, 3.899]
+  [Scheduler] Reverse step 300/500  x range: [-4.167, 4.220]
+  [Scheduler] Reverse step 250/500  x range: [-4.432, 4.193]
+  [Scheduler] Reverse step 200/500  x range: [-4.928, 4.735]
+  [Scheduler] Reverse step 150/500  x range: [-5.109, 4.786]
+  [Scheduler] Reverse step 100/500  x range: [-5.050, 5.095]
+  [Scheduler] Reverse step  50/500  x range: [-5.060, 4.955]
+  [Scheduler] Reverse step   0/500  x range: [-4.958, 4.989]
+  Generated: 768/10000
+
+  --- Batch 4 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.176, 3.969]
+  [Scheduler] Reverse step 450/500  x range: [-3.990, 4.170]
+  [Scheduler] Reverse step 400/500  x range: [-4.362, 3.861]
+  [Scheduler] Reverse step 350/500  x range: [-4.096, 4.747]
+  [Scheduler] Reverse step 300/500  x range: [-5.007, 4.192]
+  [Scheduler] Reverse step 250/500  x range: [-4.085, 4.614]
+  [Scheduler] Reverse step 200/500  x range: [-4.900, 4.554]
+  [Scheduler] Reverse step 150/500  x range: [-5.030, 4.396]
+  [Scheduler] Reverse step 100/500  x range: [-5.200, 4.907]
+  [Scheduler] Reverse step  50/500  x range: [-5.241, 5.311]
+  [Scheduler] Reverse step   0/500  x range: [-4.992, 5.082]
+  Generated: 1024/10000
+
+  --- Batch 5 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.320, 4.571]
+  [Scheduler] Reverse step 450/500  x range: [-4.229, 4.966]
+  [Scheduler] Reverse step 400/500  x range: [-4.348, 4.375]
+  [Scheduler] Reverse step 350/500  x range: [-4.630, 4.527]
+  [Scheduler] Reverse step 300/500  x range: [-4.876, 4.386]
+  [Scheduler] Reverse step 250/500  x range: [-4.473, 4.240]
+  [Scheduler] Reverse step 200/500  x range: [-4.708, 4.609]
+  [Scheduler] Reverse step 150/500  x range: [-4.999, 4.762]
+  [Scheduler] Reverse step 100/500  x range: [-4.975, 4.996]
+  [Scheduler] Reverse step  50/500  x range: [-5.418, 5.134]
+  [Scheduler] Reverse step   0/500  x range: [-4.987, 5.062]
+  Generated: 1280/10000
+
+  --- Batch 6 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.000, 4.406]
+  [Scheduler] Reverse step 450/500  x range: [-4.146, 4.111]
+  [Scheduler] Reverse step 400/500  x range: [-3.983, 4.167]
+  [Scheduler] Reverse step 350/500  x range: [-4.535, 5.365]
+  [Scheduler] Reverse step 300/500  x range: [-4.370, 4.616]
+  [Scheduler] Reverse step 250/500  x range: [-4.658, 4.676]
+  [Scheduler] Reverse step 200/500  x range: [-4.406, 5.328]
+  [Scheduler] Reverse step 150/500  x range: [-4.957, 5.239]
+  [Scheduler] Reverse step 100/500  x range: [-5.206, 5.164]
+  [Scheduler] Reverse step  50/500  x range: [-5.200, 5.273]
+  [Scheduler] Reverse step   0/500  x range: [-4.927, 4.944]
+  Generated: 1536/10000
+
+  --- Batch 7 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.180, 4.548]
+  [Scheduler] Reverse step 450/500  x range: [-4.153, 4.144]
+  [Scheduler] Reverse step 400/500  x range: [-4.582, 4.211]
+  [Scheduler] Reverse step 350/500  x range: [-4.192, 4.320]
+  [Scheduler] Reverse step 300/500  x range: [-4.166, 4.337]
+  [Scheduler] Reverse step 250/500  x range: [-4.842, 4.865]
+  [Scheduler] Reverse step 200/500  x range: [-5.113, 5.310]
+  [Scheduler] Reverse step 150/500  x range: [-4.927, 5.352]
+  [Scheduler] Reverse step 100/500  x range: [-5.269, 5.412]
+  [Scheduler] Reverse step  50/500  x range: [-5.077, 5.476]
+  [Scheduler] Reverse step   0/500  x range: [-4.991, 5.105]
+  Generated: 1792/10000
+
+  --- Batch 8 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.298, 4.398]
+  [Scheduler] Reverse step 450/500  x range: [-4.842, 4.661]
+  [Scheduler] Reverse step 400/500  x range: [-4.099, 4.277]
+  [Scheduler] Reverse step 350/500  x range: [-3.960, 4.280]
+  [Scheduler] Reverse step 300/500  x range: [-4.339, 4.014]
+  [Scheduler] Reverse step 250/500  x range: [-4.113, 4.389]
+  [Scheduler] Reverse step 200/500  x range: [-4.375, 4.163]
+  [Scheduler] Reverse step 150/500  x range: [-5.074, 4.282]
+  [Scheduler] Reverse step 100/500  x range: [-5.410, 5.047]
+  [Scheduler] Reverse step  50/500  x range: [-4.992, 5.235]
+  [Scheduler] Reverse step   0/500  x range: [-5.074, 5.006]
+  Generated: 2048/10000
+
+  --- Batch 9 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.366, 4.300]
+  [Scheduler] Reverse step 450/500  x range: [-4.200, 4.027]
+  [Scheduler] Reverse step 400/500  x range: [-4.107, 3.913]
+  [Scheduler] Reverse step 350/500  x range: [-4.330, 4.852]
+  [Scheduler] Reverse step 300/500  x range: [-4.697, 3.982]
+  [Scheduler] Reverse step 250/500  x range: [-4.882, 4.190]
+  [Scheduler] Reverse step 200/500  x range: [-4.731, 4.689]
+  [Scheduler] Reverse step 150/500  x range: [-4.921, 5.338]
+  [Scheduler] Reverse step 100/500  x range: [-5.289, 5.335]
+  [Scheduler] Reverse step  50/500  x range: [-5.331, 5.253]
+  [Scheduler] Reverse step   0/500  x range: [-4.904, 4.922]
+  Generated: 2304/10000
+
+  --- Batch 10 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.675, 4.051]
+  [Scheduler] Reverse step 450/500  x range: [-4.566, 4.038]
+  [Scheduler] Reverse step 400/500  x range: [-4.556, 4.160]
+  [Scheduler] Reverse step 350/500  x range: [-4.985, 3.975]
+  [Scheduler] Reverse step 300/500  x range: [-4.847, 4.475]
+  [Scheduler] Reverse step 250/500  x range: [-4.498, 4.255]
+  [Scheduler] Reverse step 200/500  x range: [-4.636, 4.349]
+  [Scheduler] Reverse step 150/500  x range: [-4.568, 5.060]
+  [Scheduler] Reverse step 100/500  x range: [-5.028, 5.595]
+  [Scheduler] Reverse step  50/500  x range: [-5.142, 5.281]
+  [Scheduler] Reverse step   0/500  x range: [-4.990, 5.020]
+  Generated: 2560/10000
+
+  --- Batch 11 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.268, 4.455]
+  [Scheduler] Reverse step 450/500  x range: [-4.583, 4.073]
+  [Scheduler] Reverse step 400/500  x range: [-4.532, 4.604]
+  [Scheduler] Reverse step 350/500  x range: [-4.809, 4.153]
+  [Scheduler] Reverse step 300/500  x range: [-5.129, 4.535]
+  [Scheduler] Reverse step 250/500  x range: [-4.368, 4.517]
+  [Scheduler] Reverse step 200/500  x range: [-4.474, 4.509]
+  [Scheduler] Reverse step 150/500  x range: [-5.051, 4.792]
+  [Scheduler] Reverse step 100/500  x range: [-5.099, 5.116]
+  [Scheduler] Reverse step  50/500  x range: [-4.828, 5.303]
+  [Scheduler] Reverse step   0/500  x range: [-5.014, 5.197]
+  Generated: 2816/10000
+
+  --- Batch 12 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.364, 4.077]
+  [Scheduler] Reverse step 450/500  x range: [-4.335, 4.112]
+  [Scheduler] Reverse step 400/500  x range: [-5.232, 4.036]
+  [Scheduler] Reverse step 350/500  x range: [-5.300, 4.465]
+  [Scheduler] Reverse step 300/500  x range: [-4.114, 4.947]
+  [Scheduler] Reverse step 250/500  x range: [-4.449, 4.147]
+  [Scheduler] Reverse step 200/500  x range: [-4.429, 4.357]
+  [Scheduler] Reverse step 150/500  x range: [-4.771, 4.259]
+  [Scheduler] Reverse step 100/500  x range: [-5.063, 5.232]
+  [Scheduler] Reverse step  50/500  x range: [-5.242, 5.080]
+  [Scheduler] Reverse step   0/500  x range: [-4.937, 4.936]
+  Generated: 3072/10000
+
+  --- Batch 13 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.528, 4.017]
+  [Scheduler] Reverse step 450/500  x range: [-4.393, 4.043]
+  [Scheduler] Reverse step 400/500  x range: [-4.159, 4.417]
+  [Scheduler] Reverse step 350/500  x range: [-4.141, 4.592]
+  [Scheduler] Reverse step 300/500  x range: [-4.554, 3.881]
+  [Scheduler] Reverse step 250/500  x range: [-4.924, 4.114]
+  [Scheduler] Reverse step 200/500  x range: [-4.875, 4.208]
+  [Scheduler] Reverse step 150/500  x range: [-4.963, 4.566]
+  [Scheduler] Reverse step 100/500  x range: [-5.026, 4.762]
+  [Scheduler] Reverse step  50/500  x range: [-5.107, 4.957]
+  [Scheduler] Reverse step   0/500  x range: [-4.941, 4.894]
+  Generated: 3328/10000
+
+  --- Batch 14 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.260, 4.595]
+  [Scheduler] Reverse step 450/500  x range: [-3.928, 4.462]
+  [Scheduler] Reverse step 400/500  x range: [-4.567, 4.195]
+  [Scheduler] Reverse step 350/500  x range: [-5.246, 4.142]
+  [Scheduler] Reverse step 300/500  x range: [-4.305, 4.238]
+  [Scheduler] Reverse step 250/500  x range: [-4.334, 4.257]
+  [Scheduler] Reverse step 200/500  x range: [-4.782, 4.589]
+  [Scheduler] Reverse step 150/500  x range: [-4.633, 4.617]
+  [Scheduler] Reverse step 100/500  x range: [-4.999, 4.961]
+  [Scheduler] Reverse step  50/500  x range: [-5.322, 5.276]
+  [Scheduler] Reverse step   0/500  x range: [-4.996, 4.967]
+  Generated: 3584/10000
+
+  --- Batch 15 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.018, 4.574]
+  [Scheduler] Reverse step 450/500  x range: [-4.138, 5.044]
+  [Scheduler] Reverse step 400/500  x range: [-4.162, 4.308]
+  [Scheduler] Reverse step 350/500  x range: [-4.422, 4.451]
+  [Scheduler] Reverse step 300/500  x range: [-4.732, 4.140]
+  [Scheduler] Reverse step 250/500  x range: [-4.240, 4.740]
+  [Scheduler] Reverse step 200/500  x range: [-4.668, 5.351]
+  [Scheduler] Reverse step 150/500  x range: [-4.693, 5.381]
+  [Scheduler] Reverse step 100/500  x range: [-4.896, 5.407]
+  [Scheduler] Reverse step  50/500  x range: [-4.860, 5.020]
+  [Scheduler] Reverse step   0/500  x range: [-4.920, 4.951]
+  Generated: 3840/10000
+
+  --- Batch 16 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.916, 4.945]
+  [Scheduler] Reverse step 450/500  x range: [-4.623, 4.609]
+  [Scheduler] Reverse step 400/500  x range: [-4.056, 4.136]
+  [Scheduler] Reverse step 350/500  x range: [-4.149, 4.167]
+  [Scheduler] Reverse step 300/500  x range: [-4.505, 4.314]
+  [Scheduler] Reverse step 250/500  x range: [-4.193, 4.244]
+  [Scheduler] Reverse step 200/500  x range: [-4.709, 4.810]
+  [Scheduler] Reverse step 150/500  x range: [-5.104, 4.791]
+  [Scheduler] Reverse step 100/500  x range: [-5.443, 4.865]
+  [Scheduler] Reverse step  50/500  x range: [-5.276, 5.225]
+  [Scheduler] Reverse step   0/500  x range: [-5.068, 5.055]
+  Generated: 4096/10000
+
+  --- Batch 17 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.419, 4.432]
+  [Scheduler] Reverse step 450/500  x range: [-4.943, 4.180]
+  [Scheduler] Reverse step 400/500  x range: [-4.276, 4.555]
+  [Scheduler] Reverse step 350/500  x range: [-4.822, 4.393]
+  [Scheduler] Reverse step 300/500  x range: [-4.834, 4.636]
+  [Scheduler] Reverse step 250/500  x range: [-4.670, 4.533]
+  [Scheduler] Reverse step 200/500  x range: [-4.750, 4.592]
+  [Scheduler] Reverse step 150/500  x range: [-5.127, 4.528]
+  [Scheduler] Reverse step 100/500  x range: [-5.101, 4.950]
+  [Scheduler] Reverse step  50/500  x range: [-5.013, 4.931]
+  [Scheduler] Reverse step   0/500  x range: [-4.969, 4.959]
+  Generated: 4352/10000
+
+  --- Batch 18 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.978, 3.988]
+  [Scheduler] Reverse step 450/500  x range: [-4.936, 4.002]
+  [Scheduler] Reverse step 400/500  x range: [-4.162, 4.363]
+  [Scheduler] Reverse step 350/500  x range: [-4.293, 4.466]
+  [Scheduler] Reverse step 300/500  x range: [-3.923, 3.886]
+  [Scheduler] Reverse step 250/500  x range: [-4.413, 4.410]
+  [Scheduler] Reverse step 200/500  x range: [-4.628, 5.230]
+  [Scheduler] Reverse step 150/500  x range: [-5.015, 4.988]
+  [Scheduler] Reverse step 100/500  x range: [-5.547, 5.099]
+  [Scheduler] Reverse step  50/500  x range: [-5.250, 5.277]
+  [Scheduler] Reverse step   0/500  x range: [-5.047, 5.092]
+  Generated: 4608/10000
+
+  --- Batch 19 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.224, 4.220]
+  [Scheduler] Reverse step 450/500  x range: [-4.096, 4.023]
+  [Scheduler] Reverse step 400/500  x range: [-4.818, 4.168]
+  [Scheduler] Reverse step 350/500  x range: [-4.741, 4.398]
+  [Scheduler] Reverse step 300/500  x range: [-4.462, 4.598]
+  [Scheduler] Reverse step 250/500  x range: [-4.436, 4.293]
+  [Scheduler] Reverse step 200/500  x range: [-4.602, 4.813]
+  [Scheduler] Reverse step 150/500  x range: [-4.994, 4.623]
+  [Scheduler] Reverse step 100/500  x range: [-4.815, 4.822]
+  [Scheduler] Reverse step  50/500  x range: [-4.896, 5.119]
+  [Scheduler] Reverse step   0/500  x range: [-5.001, 4.948]
+  Generated: 4864/10000
+
+  --- Batch 20 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.369, 4.312]
+  [Scheduler] Reverse step 450/500  x range: [-3.926, 4.278]
+  [Scheduler] Reverse step 400/500  x range: [-4.698, 4.230]
+  [Scheduler] Reverse step 350/500  x range: [-4.460, 4.478]
+  [Scheduler] Reverse step 300/500  x range: [-4.777, 3.880]
+  [Scheduler] Reverse step 250/500  x range: [-4.777, 4.632]
+  [Scheduler] Reverse step 200/500  x range: [-4.653, 4.573]
+  [Scheduler] Reverse step 150/500  x range: [-5.092, 4.574]
+  [Scheduler] Reverse step 100/500  x range: [-5.116, 4.709]
+  [Scheduler] Reverse step  50/500  x range: [-5.073, 5.005]
+  [Scheduler] Reverse step   0/500  x range: [-4.907, 4.989]
+  Generated: 5120/10000
+
+  --- Batch 21 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.745, 4.024]
+  [Scheduler] Reverse step 450/500  x range: [-4.254, 4.311]
+  [Scheduler] Reverse step 400/500  x range: [-4.436, 4.346]
+  [Scheduler] Reverse step 350/500  x range: [-4.921, 4.093]
+  [Scheduler] Reverse step 300/500  x range: [-4.393, 4.630]
+  [Scheduler] Reverse step 250/500  x range: [-4.517, 4.464]
+  [Scheduler] Reverse step 200/500  x range: [-4.742, 4.434]
+  [Scheduler] Reverse step 150/500  x range: [-5.420, 4.306]
+  [Scheduler] Reverse step 100/500  x range: [-5.358, 5.050]
+  [Scheduler] Reverse step  50/500  x range: [-4.943, 5.172]
+  [Scheduler] Reverse step   0/500  x range: [-4.979, 4.910]
+  Generated: 5376/10000
+
+  --- Batch 22 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.018, 4.645]
+  [Scheduler] Reverse step 450/500  x range: [-4.258, 4.521]
+  [Scheduler] Reverse step 400/500  x range: [-4.726, 4.612]
+  [Scheduler] Reverse step 350/500  x range: [-3.990, 4.543]
+  [Scheduler] Reverse step 300/500  x range: [-4.197, 4.343]
+  [Scheduler] Reverse step 250/500  x range: [-4.125, 4.180]
+  [Scheduler] Reverse step 200/500  x range: [-4.217, 4.584]
+  [Scheduler] Reverse step 150/500  x range: [-5.107, 4.112]
+  [Scheduler] Reverse step 100/500  x range: [-4.902, 4.557]
+  [Scheduler] Reverse step  50/500  x range: [-5.178, 4.690]
+  [Scheduler] Reverse step   0/500  x range: [-4.944, 4.924]
+  Generated: 5632/10000
+
+  --- Batch 23 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.097, 4.496]
+  [Scheduler] Reverse step 450/500  x range: [-4.531, 4.244]
+  [Scheduler] Reverse step 400/500  x range: [-4.234, 4.502]
+  [Scheduler] Reverse step 350/500  x range: [-4.550, 4.149]
+  [Scheduler] Reverse step 300/500  x range: [-3.832, 4.512]
+  [Scheduler] Reverse step 250/500  x range: [-4.100, 4.265]
+  [Scheduler] Reverse step 200/500  x range: [-4.632, 4.103]
+  [Scheduler] Reverse step 150/500  x range: [-5.178, 4.222]
+  [Scheduler] Reverse step 100/500  x range: [-5.298, 4.726]
+  [Scheduler] Reverse step  50/500  x range: [-5.022, 4.906]
+  [Scheduler] Reverse step   0/500  x range: [-4.986, 5.067]
+  Generated: 5888/10000
+
+  --- Batch 24 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-5.424, 4.414]
+  [Scheduler] Reverse step 450/500  x range: [-4.176, 4.609]
+  [Scheduler] Reverse step 400/500  x range: [-3.981, 4.548]
+  [Scheduler] Reverse step 350/500  x range: [-4.281, 4.180]
+  [Scheduler] Reverse step 300/500  x range: [-4.135, 4.245]
+  [Scheduler] Reverse step 250/500  x range: [-4.510, 3.746]
+  [Scheduler] Reverse step 200/500  x range: [-4.147, 4.259]
+  [Scheduler] Reverse step 150/500  x range: [-4.956, 4.726]
+  [Scheduler] Reverse step 100/500  x range: [-5.173, 4.518]
+  [Scheduler] Reverse step  50/500  x range: [-5.020, 4.950]
+  [Scheduler] Reverse step   0/500  x range: [-5.058, 4.993]
+  Generated: 6144/10000
+
+  --- Batch 25 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.898, 4.534]
+  [Scheduler] Reverse step 450/500  x range: [-4.263, 4.164]
+  [Scheduler] Reverse step 400/500  x range: [-4.269, 4.130]
+  [Scheduler] Reverse step 350/500  x range: [-4.089, 4.032]
+  [Scheduler] Reverse step 300/500  x range: [-4.105, 4.420]
+  [Scheduler] Reverse step 250/500  x range: [-4.449, 4.266]
+  [Scheduler] Reverse step 200/500  x range: [-5.302, 4.683]
+  [Scheduler] Reverse step 150/500  x range: [-5.193, 4.562]
+  [Scheduler] Reverse step 100/500  x range: [-4.970, 4.891]
+  [Scheduler] Reverse step  50/500  x range: [-5.122, 5.007]
+  [Scheduler] Reverse step   0/500  x range: [-5.044, 5.021]
+  Generated: 6400/10000
+
+  --- Batch 26 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.970, 4.120]
+  [Scheduler] Reverse step 450/500  x range: [-4.492, 4.338]
+  [Scheduler] Reverse step 400/500  x range: [-4.361, 3.802]
+  [Scheduler] Reverse step 350/500  x range: [-4.237, 4.363]
+  [Scheduler] Reverse step 300/500  x range: [-4.100, 4.323]
+  [Scheduler] Reverse step 250/500  x range: [-4.189, 4.043]
+  [Scheduler] Reverse step 200/500  x range: [-4.124, 4.084]
+  [Scheduler] Reverse step 150/500  x range: [-5.183, 4.491]
+  [Scheduler] Reverse step 100/500  x range: [-5.184, 4.896]
+  [Scheduler] Reverse step  50/500  x range: [-5.067, 4.876]
+  [Scheduler] Reverse step   0/500  x range: [-4.957, 4.997]
+  Generated: 6656/10000
+
+  --- Batch 27 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.454, 4.252]
+  [Scheduler] Reverse step 450/500  x range: [-4.323, 4.481]
+  [Scheduler] Reverse step 400/500  x range: [-4.038, 3.901]
+  [Scheduler] Reverse step 350/500  x range: [-4.475, 4.248]
+  [Scheduler] Reverse step 300/500  x range: [-3.884, 4.830]
+  [Scheduler] Reverse step 250/500  x range: [-4.002, 4.164]
+  [Scheduler] Reverse step 200/500  x range: [-4.589, 4.624]
+  [Scheduler] Reverse step 150/500  x range: [-4.783, 4.827]
+  [Scheduler] Reverse step 100/500  x range: [-5.245, 5.000]
+  [Scheduler] Reverse step  50/500  x range: [-5.431, 4.926]
+  [Scheduler] Reverse step   0/500  x range: [-5.019, 5.005]
+  Generated: 6912/10000
+
+  --- Batch 28 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.961, 3.992]
+  [Scheduler] Reverse step 450/500  x range: [-4.015, 4.275]
+  [Scheduler] Reverse step 400/500  x range: [-4.211, 4.901]
+  [Scheduler] Reverse step 350/500  x range: [-4.374, 4.711]
+  [Scheduler] Reverse step 300/500  x range: [-3.768, 3.787]
+  [Scheduler] Reverse step 250/500  x range: [-4.192, 4.213]
+  [Scheduler] Reverse step 200/500  x range: [-4.998, 5.005]
+  [Scheduler] Reverse step 150/500  x range: [-4.737, 4.924]
+  [Scheduler] Reverse step 100/500  x range: [-4.554, 5.169]
+  [Scheduler] Reverse step  50/500  x range: [-5.051, 4.841]
+  [Scheduler] Reverse step   0/500  x range: [-5.000, 5.027]
+  Generated: 7168/10000
+
+  --- Batch 29 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.786, 4.352]
+  [Scheduler] Reverse step 450/500  x range: [-4.231, 4.921]
+  [Scheduler] Reverse step 400/500  x range: [-4.296, 4.513]
+  [Scheduler] Reverse step 350/500  x range: [-4.459, 4.194]
+  [Scheduler] Reverse step 300/500  x range: [-4.344, 3.992]
+  [Scheduler] Reverse step 250/500  x range: [-4.590, 4.736]
+  [Scheduler] Reverse step 200/500  x range: [-5.019, 5.232]
+  [Scheduler] Reverse step 150/500  x range: [-5.078, 4.750]
+  [Scheduler] Reverse step 100/500  x range: [-5.351, 4.902]
+  [Scheduler] Reverse step  50/500  x range: [-5.695, 5.099]
+  [Scheduler] Reverse step   0/500  x range: [-4.979, 5.071]
+  Generated: 7424/10000
+
+  --- Batch 30 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.210, 4.266]
+  [Scheduler] Reverse step 450/500  x range: [-3.918, 4.175]
+  [Scheduler] Reverse step 400/500  x range: [-3.993, 4.036]
+  [Scheduler] Reverse step 350/500  x range: [-4.281, 4.219]
+  [Scheduler] Reverse step 300/500  x range: [-4.320, 4.518]
+  [Scheduler] Reverse step 250/500  x range: [-4.592, 4.577]
+  [Scheduler] Reverse step 200/500  x range: [-4.625, 5.550]
+  [Scheduler] Reverse step 150/500  x range: [-5.416, 4.690]
+  [Scheduler] Reverse step 100/500  x range: [-5.248, 5.100]
+  [Scheduler] Reverse step  50/500  x range: [-5.378, 5.122]
+  [Scheduler] Reverse step   0/500  x range: [-5.087, 5.003]
+  Generated: 7680/10000
+
+  --- Batch 31 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.499, 4.325]
+  [Scheduler] Reverse step 450/500  x range: [-4.103, 4.383]
+  [Scheduler] Reverse step 400/500  x range: [-4.521, 3.806]
+  [Scheduler] Reverse step 350/500  x range: [-4.283, 4.797]
+  [Scheduler] Reverse step 300/500  x range: [-4.376, 4.213]
+  [Scheduler] Reverse step 250/500  x range: [-4.679, 4.627]
+  [Scheduler] Reverse step 200/500  x range: [-4.934, 4.694]
+  [Scheduler] Reverse step 150/500  x range: [-5.000, 4.973]
+  [Scheduler] Reverse step 100/500  x range: [-5.367, 4.974]
+  [Scheduler] Reverse step  50/500  x range: [-5.323, 4.920]
+  [Scheduler] Reverse step   0/500  x range: [-5.001, 4.988]
+  Generated: 7936/10000
+
+  --- Batch 32 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.501, 4.030]
+  [Scheduler] Reverse step 450/500  x range: [-4.626, 4.397]
+  [Scheduler] Reverse step 400/500  x range: [-4.155, 4.057]
+  [Scheduler] Reverse step 350/500  x range: [-4.465, 4.380]
+  [Scheduler] Reverse step 300/500  x range: [-4.217, 4.615]
+  [Scheduler] Reverse step 250/500  x range: [-4.297, 4.003]
+  [Scheduler] Reverse step 200/500  x range: [-4.576, 4.172]
+  [Scheduler] Reverse step 150/500  x range: [-4.395, 4.200]
+  [Scheduler] Reverse step 100/500  x range: [-5.109, 5.018]
+  [Scheduler] Reverse step  50/500  x range: [-5.186, 4.888]
+  [Scheduler] Reverse step   0/500  x range: [-4.951, 4.962]
+  Generated: 8192/10000
+
+  --- Batch 33 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.103, 4.295]
+  [Scheduler] Reverse step 450/500  x range: [-4.335, 4.519]
+  [Scheduler] Reverse step 400/500  x range: [-4.269, 4.274]
+  [Scheduler] Reverse step 350/500  x range: [-4.075, 4.061]
+  [Scheduler] Reverse step 300/500  x range: [-4.324, 5.090]
+  [Scheduler] Reverse step 250/500  x range: [-4.152, 4.969]
+  [Scheduler] Reverse step 200/500  x range: [-4.318, 4.880]
+  [Scheduler] Reverse step 150/500  x range: [-4.965, 4.676]
+  [Scheduler] Reverse step 100/500  x range: [-5.011, 5.347]
+  [Scheduler] Reverse step  50/500  x range: [-5.293, 5.205]
+  [Scheduler] Reverse step   0/500  x range: [-5.003, 5.134]
+  Generated: 8448/10000
+
+  --- Batch 34 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.068, 4.542]
+  [Scheduler] Reverse step 450/500  x range: [-4.414, 4.453]
+  [Scheduler] Reverse step 400/500  x range: [-4.207, 4.447]
+  [Scheduler] Reverse step 350/500  x range: [-4.202, 4.131]
+  [Scheduler] Reverse step 300/500  x range: [-5.655, 4.376]
+  [Scheduler] Reverse step 250/500  x range: [-4.639, 4.103]
+  [Scheduler] Reverse step 200/500  x range: [-5.175, 4.430]
+  [Scheduler] Reverse step 150/500  x range: [-4.908, 4.325]
+  [Scheduler] Reverse step 100/500  x range: [-5.184, 4.695]
+  [Scheduler] Reverse step  50/500  x range: [-5.315, 5.174]
+  [Scheduler] Reverse step   0/500  x range: [-4.958, 4.967]
+  Generated: 8704/10000
+
+  --- Batch 35 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.876, 4.256]
+  [Scheduler] Reverse step 450/500  x range: [-4.014, 4.083]
+  [Scheduler] Reverse step 400/500  x range: [-4.652, 4.828]
+  [Scheduler] Reverse step 350/500  x range: [-4.305, 4.304]
+  [Scheduler] Reverse step 300/500  x range: [-4.068, 4.652]
+  [Scheduler] Reverse step 250/500  x range: [-4.445, 4.207]
+  [Scheduler] Reverse step 200/500  x range: [-4.576, 4.856]
+  [Scheduler] Reverse step 150/500  x range: [-4.853, 4.515]
+  [Scheduler] Reverse step 100/500  x range: [-5.293, 5.157]
+  [Scheduler] Reverse step  50/500  x range: [-5.209, 4.929]
+  [Scheduler] Reverse step   0/500  x range: [-4.959, 4.925]
+  Generated: 8960/10000
+
+  --- Batch 36 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.149, 4.500]
+  [Scheduler] Reverse step 450/500  x range: [-4.114, 3.864]
+  [Scheduler] Reverse step 400/500  x range: [-4.351, 4.251]
+  [Scheduler] Reverse step 350/500  x range: [-4.779, 4.222]
+  [Scheduler] Reverse step 300/500  x range: [-4.867, 4.915]
+  [Scheduler] Reverse step 250/500  x range: [-5.141, 5.353]
+  [Scheduler] Reverse step 200/500  x range: [-4.654, 5.010]
+  [Scheduler] Reverse step 150/500  x range: [-5.079, 5.319]
+  [Scheduler] Reverse step 100/500  x range: [-5.364, 5.398]
+  [Scheduler] Reverse step  50/500  x range: [-5.197, 5.191]
+  [Scheduler] Reverse step   0/500  x range: [-5.042, 5.112]
+  Generated: 9216/10000
+
+  --- Batch 37 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.102, 4.877]
+  [Scheduler] Reverse step 450/500  x range: [-4.031, 4.687]
+  [Scheduler] Reverse step 400/500  x range: [-3.918, 4.294]
+  [Scheduler] Reverse step 350/500  x range: [-4.202, 4.392]
+  [Scheduler] Reverse step 300/500  x range: [-4.405, 4.331]
+  [Scheduler] Reverse step 250/500  x range: [-4.221, 4.627]
+  [Scheduler] Reverse step 200/500  x range: [-4.641, 4.209]
+  [Scheduler] Reverse step 150/500  x range: [-4.834, 5.040]
+  [Scheduler] Reverse step 100/500  x range: [-5.009, 4.868]
+  [Scheduler] Reverse step  50/500  x range: [-4.965, 5.008]
+  [Scheduler] Reverse step   0/500  x range: [-5.043, 5.104]
+  Generated: 9472/10000
+
+  --- Batch 38 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.245, 4.009]
+  [Scheduler] Reverse step 450/500  x range: [-4.296, 4.243]
+  [Scheduler] Reverse step 400/500  x range: [-4.492, 3.965]
+  [Scheduler] Reverse step 350/500  x range: [-4.742, 4.251]
+  [Scheduler] Reverse step 300/500  x range: [-4.514, 3.866]
+  [Scheduler] Reverse step 250/500  x range: [-4.649, 4.277]
+  [Scheduler] Reverse step 200/500  x range: [-4.952, 4.579]
+  [Scheduler] Reverse step 150/500  x range: [-4.964, 4.362]
+  [Scheduler] Reverse step 100/500  x range: [-4.771, 4.654]
+  [Scheduler] Reverse step  50/500  x range: [-4.952, 5.007]
+  [Scheduler] Reverse step   0/500  x range: [-4.933, 4.944]
+  Generated: 9728/10000
+
+  --- Batch 39 (256 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-4.354, 4.205]
+  [Scheduler] Reverse step 450/500  x range: [-4.794, 4.507]
+  [Scheduler] Reverse step 400/500  x range: [-4.714, 4.842]
+  [Scheduler] Reverse step 350/500  x range: [-4.708, 4.209]
+  [Scheduler] Reverse step 300/500  x range: [-4.302, 4.371]
+  [Scheduler] Reverse step 250/500  x range: [-4.020, 4.743]
+  [Scheduler] Reverse step 200/500  x range: [-5.044, 4.013]
+  [Scheduler] Reverse step 150/500  x range: [-5.536, 4.340]
+  [Scheduler] Reverse step 100/500  x range: [-4.768, 4.830]
+  [Scheduler] Reverse step  50/500  x range: [-4.783, 4.824]
+  [Scheduler] Reverse step   0/500  x range: [-5.037, 4.966]
+  Generated: 9984/10000
+
+  --- Batch 40 (16 samples) ---
+  [Scheduler] Reverse step 499/500  x range: [-3.387, 3.986]
+  [Scheduler] Reverse step 450/500  x range: [-3.604, 3.637]
+  [Scheduler] Reverse step 400/500  x range: [-3.584, 3.475]
+  [Scheduler] Reverse step 350/500  x range: [-3.598, 3.543]
+  [Scheduler] Reverse step 300/500  x range: [-3.229, 3.742]
+  [Scheduler] Reverse step 250/500  x range: [-3.353, 3.501]
+  [Scheduler] Reverse step 200/500  x range: [-3.310, 3.578]
+  [Scheduler] Reverse step 150/500  x range: [-3.038, 3.570]
+  [Scheduler] Reverse step 100/500  x range: [-3.588, 4.055]
+  [Scheduler] Reverse step  50/500  x range: [-3.919, 3.878]
+  [Scheduler] Reverse step   0/500  x range: [-4.080, 3.095]
+  Generated: 10000/10000
+
+[Step 4] Saving to CSV...
+
+============================================================
+  Generation Complete!
+============================================================
+  Output:         /home/u00134/src/output/deep_v3.csv
+  Shape:          (10000, 256)
+  Total time:     666.3s
+  Time per sample: 66.63ms
+
+  ── SP500 日收益率统计 ──
+    Mean:  0.000596
+    Std:   0.004994
+    Min:   -0.053358
+    Max:   0.055147
+
+  ── DGS10 日差分统计 ──
+    Mean:  0.001174
+    Std:   0.027208
+    Min:   -0.336902
+    Max:   0.333847
