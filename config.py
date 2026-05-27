@@ -35,7 +35,7 @@ NUM_GROUPS      = 8                 # GroupNorm 分组数
 # ──────────────────────────────────────────────
 # DDPM Scheduler
 # ──────────────────────────────────────────────
-T               = 1000       # 总扩散步数
+T               = 3000       # 总扩散步数
 BETA_START      = 1e-4      # β₁
 BETA_END        = 0.02      # β_T
 
@@ -48,13 +48,13 @@ LEARNING_RATE   = 2e-4
 WEIGHT_DECAY    = 1e-4
 GRAD_CLIP       = 1.0       # 梯度裁剪阈值
 EMA_DECAY       = 0.995     # 指数移动平均衰减率
-CHECKPOINT_EVERY = 100       # 每 N epoch 保存 checkpoint
+CHECKPOINT_EVERY = 3000       # 每 N epoch 保存 checkpoint
 SEED            = 42
 
 # ──────────────────────────────────────────────
 # Generation
 # ──────────────────────────────────────────────
-NUM_SIMULATIONS = 2560
+NUM_SIMULATIONS = 5120
 GEN_BATCH_SIZE  = 256       # 分批生成，避免 OOM
 
 # ──────────────────────────────────────────────
