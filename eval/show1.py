@@ -40,7 +40,146 @@ os.makedirs(output_dir, exist_ok=True)
 # 2. 读取数据
 # ============================================================
 
-df = pd.read_csv(csv_path)
+df_raw = pd.read_csv(csv_path)
+
+# ── 宽表检测 (DDPM 生成格式) ──
+# 列名模式: sp500_level_0, ..., sp500_level_127, dgs10_level_0, ..., dgs10_level_127
+# 或:        sp500_0, ..., sp500_127, dgs10_0, ..., dgs10_127
+wide_format = False
+sp_level_cols = sorted(
+    [c for c in df_raw.columns if c.startswith("sp500_level_") and c[12:].isdigit()],
+    key=lambda c: int(c[12:]),
+)
+dg_level_cols = sorted(
+    [c for c in df_raw.columns if c.startswith("dgs10_level_") and c[12:].isdigit()],
+    key=lambda c: int(c[12:]),
+)
+
+if len(sp_level_cols) >= 2 and len(dg_level_cols) >= 2:
+    wide_format = True
+    print(f"[Auto-detected] DDPM wide-table LEVELS format")
+    print(f"  {len(df_raw)} paths × {len(sp_level_cols)} SP500 timesteps + {len(dg_level_cols)} DGS10 timesteps")
+
+if wide_format:
+    # ── 宽表模式: 随机选取若干独立路径并绘制 ──
+    num_paths_to_plot = min(5, len(df_raw))
+    rng = np.random.RandomState(42)
+    path_indices = sorted(rng.choice(len(df_raw), size=num_paths_to_plot, replace=False))
+    seq_len = len(sp_level_cols)
+
+    sp500_all = df_raw[sp_level_cols].values   # (N, seq_len)
+    dgs10_all = df_raw[dg_level_cols].values   # (N, seq_len)
+
+    print(f"  Selected paths for plotting: {path_indices}")
+    print(f"  SP500 level range: [{sp500_all.min():.2f}, {sp500_all.max():.2f}]")
+    print(f"  DGS10 level range: [{dgs10_all.min():.4f}, {dgs10_all.max():.4f}]")
+
+    # ── 绘制模拟路径 ──
+    print(f"\nGenerating wide-format figures...\n")
+
+    # 图 1: SP500 价格路径
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+
+    for idx in path_indices:
+        ax1.plot(range(seq_len), sp500_all[idx], linewidth=0.8, alpha=0.8,
+                 label=f"Path #{idx}")
+    ax1.set_xlabel("Trading Day (within window)")
+    ax1.set_ylabel("S&P 500 Index Level")
+    ax1.set_title(f"DDPM Generated S&P 500 Price Paths ({num_paths_to_plot} samples)")
+    ax1.legend(fontsize=8)
+    ax1.grid(True, alpha=0.3)
+
+    for idx in path_indices:
+        ax2.plot(range(seq_len), dgs10_all[idx], linewidth=0.8, alpha=0.8,
+                 label=f"Path #{idx}")
+    ax2.set_xlabel("Trading Day (within window)")
+    ax2.set_ylabel("10Y Treasury Yield Level")
+    ax2.set_title(f"DDPM Generated 10Y Yield Paths ({num_paths_to_plot} samples)")
+    ax2.legend(fontsize=8)
+    ax2.grid(True, alpha=0.3)
+
+    fig.tight_layout()
+    save_path = os.path.join(output_dir, "01_raw_time_series.png")
+    fig.savefig(save_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {save_path}")
+
+    # 图 2: 路径扇形图 (百分位数包络)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10))
+    x = np.arange(seq_len)
+
+    for q_lo, q_hi, alpha_val in [(5, 95, 0.15), (10, 90, 0.2), (25, 75, 0.3)]:
+        sp_lo = np.percentile(sp500_all, q_lo, axis=0)
+        sp_hi = np.percentile(sp500_all, q_hi, axis=0)
+        ax1.fill_between(x, sp_lo, sp_hi, alpha=alpha_val, color="navy",
+                         label=f"{q_lo}-{q_hi}th pctl" if alpha_val == 0.15 else "")
+    sp_med = np.median(sp500_all, axis=0)
+    ax1.plot(x, sp_med, color="navy", linewidth=1.5, label="Median")
+    ax1.set_xlabel("Trading Day (within window)")
+    ax1.set_ylabel("S&P 500 Index Level")
+    ax1.set_title(f"S&P 500 Fan Chart ({len(df_raw)} simulated paths)")
+    ax1.legend(fontsize=8)
+    ax1.grid(True, alpha=0.3)
+
+    for q_lo, q_hi, alpha_val in [(5, 95, 0.15), (10, 90, 0.2), (25, 75, 0.3)]:
+        dg_lo = np.percentile(dgs10_all, q_lo, axis=0)
+        dg_hi = np.percentile(dgs10_all, q_hi, axis=0)
+        ax2.fill_between(x, dg_lo, dg_hi, alpha=alpha_val, color="darkorange",
+                         label=f"{q_lo}-{q_hi}th pctl" if alpha_val == 0.15 else "")
+    dg_med = np.median(dgs10_all, axis=0)
+    ax2.plot(x, dg_med, color="darkorange", linewidth=1.5, label="Median")
+    ax2.set_xlabel("Trading Day (within window)")
+    ax2.set_ylabel("10Y Treasury Yield Level")
+    ax2.set_title(f"10Y Yield Fan Chart ({len(df_raw)} simulated paths)")
+    ax2.legend(fontsize=8)
+    ax2.grid(True, alpha=0.3)
+
+    fig.tight_layout()
+    save_path = os.path.join(output_dir, "02_fan_chart.png")
+    fig.savefig(save_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {save_path}")
+
+    # 图 3: 终端值分布直方图
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+    sp_terminal = sp500_all[:, -1]
+    ax1.hist(sp_terminal, bins=80, density=True, color="navy", alpha=0.7, edgecolor="black")
+    ax1.axvline(sp_terminal.mean(), color="red", linestyle="--", label=f"Mean={sp_terminal.mean():.1f}")
+    ax1.set_title(f"SP500 Terminal Price Distribution (t={seq_len})")
+    ax1.set_xlabel("Price Level")
+    ax1.set_ylabel("Density")
+    ax1.legend()
+
+    dg_terminal = dgs10_all[:, -1]
+    ax2.hist(dg_terminal, bins=80, density=True, color="darkorange", alpha=0.7, edgecolor="black")
+    ax2.axvline(dg_terminal.mean(), color="red", linestyle="--", label=f"Mean={dg_terminal.mean():.2f}")
+    ax2.set_title(f"DGS10 Terminal Yield Distribution (t={seq_len})")
+    ax2.set_xlabel("Yield Level")
+    ax2.set_ylabel("Density")
+    ax2.legend()
+
+    fig.tight_layout()
+    save_path = os.path.join(output_dir, "03_terminal_distribution.png")
+    fig.savefig(save_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {save_path}")
+
+    print(f"\nAll wide-format figures generated successfully.")
+    print(f"\nPath statistics:")
+    print(f"  SP500 terminal mean: {sp_terminal.mean():.2f}, std: {sp_terminal.std():.2f}")
+    print(f"  DGS10 terminal mean: {dg_terminal.mean():.4f}, std: {dg_terminal.std():.4f}")
+
+    # 宽表模式不需要后续的长表处理逻辑，直接退出
+    import sys
+    sys.exit(0)
+
+
+# ============================================================
+# 2b. 长表格式处理 (原始逻辑)
+# ============================================================
+
+df = df_raw
 
 # 检测CSV格式并选择真正的资产列。
 # 支持：
