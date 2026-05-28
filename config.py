@@ -16,7 +16,7 @@ OUTPUT_DIR      = os.path.expanduser("~/src/output")
 # ──────────────────────────────────────────────
 # Data Pipeline
 # ──────────────────────────────────────────────
-SEQ_LEN         = 128       # 2^7, 完美适配 U-Net 逐级下采样
+SEQ_LEN         = 2048       # 2^10, 完美适配 U-Net 逐级下采样
 CHANNELS        = 2         # sp500 日收益率 + DGS10 日差分
 STRIDE          = 5         # 按周滑动，阻断数据泄露
 
@@ -35,7 +35,7 @@ NUM_GROUPS      = 8                 # GroupNorm 分组数
 # ──────────────────────────────────────────────
 # DDPM Scheduler
 # ──────────────────────────────────────────────
-T               = 1000       # 总扩散步数
+T               = 3000       # 总扩散步数
 BETA_START      = 1e-4      # β₁
 BETA_END        = 0.02      # β_T
 
@@ -43,19 +43,19 @@ BETA_END        = 0.02      # β_T
 # Training
 # ──────────────────────────────────────────────
 BATCH_SIZE      = 64
-NUM_EPOCHS      = 5000
+NUM_EPOCHS      = 7000
 LEARNING_RATE   = 2e-4
 WEIGHT_DECAY    = 1e-4
 GRAD_CLIP       = 1.0       # 梯度裁剪阈值
 EMA_DECAY       = 0.995     # 指数移动平均衰减率
-CHECKPOINT_EVERY = 100       # 每 N epoch 保存 checkpoint
+CHECKPOINT_EVERY = 1500       # 每 N epoch 保存 checkpoint
 SEED            = 42
 
 # ──────────────────────────────────────────────
 # Generation
 # ──────────────────────────────────────────────
-NUM_SIMULATIONS = 2560
-GEN_BATCH_SIZE  = 256       # 分批生成，避免 OOM
+NUM_SIMULATIONS = 5120
+GEN_BATCH_SIZE  = 64        # 分批生成，避免 OOM
 
 # ──────────────────────────────────────────────
 # Device Auto-Detection

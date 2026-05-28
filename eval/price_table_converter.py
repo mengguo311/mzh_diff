@@ -119,13 +119,77 @@ def read_asset_table(
     return df, (col1, col2)
 
 
+def detect_wide_format(df: pd.DataFrame) -> bool:
+    """
+    检测 CSV 是否为 DDPM 生成的宽表格式。
+    宽表特征: 列名匹配 sp500_0, sp500_1, ..., sp500_N, dgs10_0, dgs10_1, ..., dgs10_N
+    每行是一条独立的模拟路径，列是时间步。
+    """
+    cols = df.columns.tolist()
+    sp500_cols = sorted([c for c in cols if c.startswith("sp500_") and c[6:].isdigit()],
+                        key=lambda c: int(c[6:]))
+    dgs10_cols = sorted([c for c in cols if c.startswith("dgs10_") and c[6:].isdigit()],
+                        key=lambda c: int(c[6:]))
+    if len(sp500_cols) >= 2 and len(dgs10_cols) >= 2:
+        # 验证列号是否连续: sp500_0, sp500_1, ...
+        sp_indices = [int(c[6:]) for c in sp500_cols]
+        dg_indices = [int(c[6:]) for c in dgs10_cols]
+        if sp_indices == list(range(len(sp_indices))) and dg_indices == list(range(len(dg_indices))):
+            return True
+    return False
+
+
+def wide_changes_to_levels(
+    df: pd.DataFrame,
+    sp500_initial: float,
+    dgs10_initial: float,
+) -> pd.DataFrame:
+    """
+    宽表格式 diff-to-level 转换。
+    每行是一条独立模拟路径，对每条路径独立执行:
+      - SP500: price_t = initial * cumprod(1 + r_t)   (沿时间轴 axis=1)
+      - DGS10: yield_t = initial + cumsum(d_t)        (沿时间轴 axis=1)
+    """
+    cols = df.columns.tolist()
+    sp500_cols = sorted([c for c in cols if c.startswith("sp500_") and c[6:].isdigit()],
+                        key=lambda c: int(c[6:]))
+    dgs10_cols = sorted([c for c in cols if c.startswith("dgs10_") and c[6:].isdigit()],
+                        key=lambda c: int(c[6:]))
+
+    seq_len = len(sp500_cols)
+
+    # 提取 numpy 数组: (N, seq_len)
+    sp500_returns = df[sp500_cols].values
+    dgs10_diffs = df[dgs10_cols].values
+
+    # 逐路径 diff → level
+    sp500_levels = sp500_initial * np.cumprod(1.0 + sp500_returns, axis=1)  # (N, seq_len)
+    dgs10_levels = dgs10_initial + np.cumsum(dgs10_diffs, axis=1)           # (N, seq_len)
+
+    # 构造输出 DataFrame
+    sp_level_cols = [f"sp500_level_{i}" for i in range(seq_len)]
+    dg_level_cols = [f"dgs10_level_{i}" for i in range(seq_len)]
+
+    out = pd.DataFrame(
+        np.concatenate([sp500_levels, dgs10_levels], axis=1),
+        columns=sp_level_cols + dg_level_cols,
+    )
+
+    print(f"[Wide Format] Detected {len(df)} simulation paths × {seq_len} timesteps")
+    print(f"  SP500 levels: range [{sp500_levels.min():.2f}, {sp500_levels.max():.2f}]")
+    print(f"  DGS10 levels: range [{dgs10_levels.min():.4f}, {dgs10_levels.max():.4f}]")
+    print(f"  SP500 per-path return std: {sp500_returns.std(axis=1).mean():.6f}")
+
+    return out
+
+
 def changes_to_levels(
     df: pd.DataFrame,
     columns: tuple[str, str],
     sp500_initial: float,
     dgs10_initial: float,
 ) -> pd.DataFrame:
-    """Asset1 daily return -> index level; Asset2 daily diff -> yield level."""
+    """Asset1 daily return -> index level; Asset2 daily diff -> yield level. (长表格式)"""
     col1, col2 = columns
     out = pd.DataFrame(index=df.index)
     out[col1] = sp500_initial * (1.0 + df[col1]).cumprod()
@@ -198,12 +262,32 @@ def main() -> None:
     args = parse_args()
     mode = MODE_ALIASES[args.direction]
     input_path, output_path = resolve_paths(args, mode)
-    df, columns = read_asset_table(input_path, args.asset1_col, args.asset2_col)
 
     if mode == "to-level":
+        # 先读取原始 CSV 检测是否为 DDPM 宽表格式
+        raw_df = read_raw_csv(input_path)
+        if detect_wide_format(raw_df):
+            print(f"\n[Auto-detected] DDPM wide-table format (rows=paths, cols=timesteps)")
+            out = wide_changes_to_levels(raw_df, args.sp500_initial, args.dgs10_initial)
+            description = "宽表 差值/收益率 -> 宽表 绝对值/水平 (逐路径独立转换)"
+            write_table(out, output_path)
+            print(f"\nMode: {description}")
+            print(f"Input: {input_path}")
+            print(f"Output: {output_path}")
+            print(f"Rows (paths): {len(out)}")
+            print(f"Columns: {len(out.columns)}")
+            print(f"Initial levels: SP500={args.sp500_initial}, DGS10={args.dgs10_initial}")
+            print("\nPreview (first 3 paths, first 5 timesteps):")
+            preview_cols = [c for c in out.columns[:5]] + ["..."] if len(out.columns) > 5 else out.columns.tolist()
+            print(out.iloc[:3, :5].to_string())
+            return
+
+        # 长表格式处理
+        df, columns = read_asset_table(input_path, args.asset1_col, args.asset2_col)
         out = changes_to_levels(df, columns, args.sp500_initial, args.dgs10_initial)
         description = "差值/收益率表 -> 绝对值/水平表"
     else:
+        df, columns = read_asset_table(input_path, args.asset1_col, args.asset2_col)
         out = levels_to_changes(df, columns)
         description = "绝对值/水平表 -> 差值/收益率表"
 
