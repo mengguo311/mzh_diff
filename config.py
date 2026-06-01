@@ -28,27 +28,27 @@ CLIP_RANGE      = 5.0       # 硬截断阈值 ±5σ
 # ──────────────────────────────────────────────
 # 1D U-Net
 # ──────────────────────────────────────────────
-CHANNEL_DIMS    = [256, 512, 1024]    # 编码器通道数序列
-TIME_EMB_DIM    = 512               # 时间嵌入维度
+CHANNEL_DIMS    =  [64, 128, 256, 512]    # 编码器通道数序列
+TIME_EMB_DIM    = 256               # 时间嵌入维度
 NUM_GROUPS      = 8                 # GroupNorm 分组数
 
 # ──────────────────────────────────────────────
 # DDPM Scheduler
 # ──────────────────────────────────────────────
-T               = 3000       # 总扩散步数
+T               = 1000       # 总扩散步数
 BETA_START      = 1e-4      # β₁
 BETA_END        = 0.02      # β_T
 
 # ──────────────────────────────────────────────
 # Training
 # ──────────────────────────────────────────────
-BATCH_SIZE      = 64
-NUM_EPOCHS      = 7000
+BATCH_SIZE      = 32
+NUM_EPOCHS      = 2000
 LEARNING_RATE   = 2e-4
-WEIGHT_DECAY    = 1e-4
+WEIGHT_DECAY    = 1e-3
 GRAD_CLIP       = 1.0       # 梯度裁剪阈值
 EMA_DECAY       = 0.995     # 指数移动平均衰减率
-CHECKPOINT_EVERY = 1500       # 每 N epoch 保存 checkpoint
+CHECKPOINT_EVERY = 700       # 每 N epoch 保存 checkpoint
 SEED            = 42
 
 # ──────────────────────────────────────────────
