@@ -1,0 +1,591 @@
+nohup: ignoring input
+[Config] CUDA detected: NVIDIA RTX A6000 x2
+[Utils] Random seed set to 42
+============================================================
+  1D-DDPM Training Pipeline
+============================================================
+  Device:     cuda
+  Epochs:     5000
+  Batch size: 64
+  LR:         0.0002
+  T:          1000
+============================================================
+
+[Phase 1] Loading data...
+[Dataset] Loaded 14734 rows from /home/u00134/data/train_sp500_us10y.csv
+[Scaler] Fitted on 14734 samples
+  sp500: mean=0.000315, std=0.010551
+  DGS10: mean=0.000026, std=0.066899
+[Dataset] 2922 windows (seq_len=128, stride=5, total_rows=14734)
+  Samples:      2922
+  Batches/epoch: 45
+
+[Phase 2] Building model...
+  U-Net parameters: 42,121,730
+[Utils] Run directory: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560
+[Utils] Config snapshot saved to /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/config.json
+[Scaler] Parameters saved to /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/scaler.pt
+
+[Phase 3] Training starts (epoch 0 → 4999)...
+------------------------------------------------------------
+  Epoch    0/5000  |  Loss: 0.353247  |  LR: 2.00e-04  |  Time: 2.70s
+  Epoch   10/5000  |  Loss: 0.241834  |  LR: 2.00e-04  |  Time: 2.10s
+  Epoch   20/5000  |  Loss: 0.237903  |  LR: 2.00e-04  |  Time: 2.17s
+  Epoch   30/5000  |  Loss: 0.236353  |  LR: 2.00e-04  |  Time: 2.21s
+  Epoch   40/5000  |  Loss: 0.224210  |  LR: 2.00e-04  |  Time: 2.16s
+  Epoch   50/5000  |  Loss: 0.212362  |  LR: 2.00e-04  |  Time: 2.18s
+  Epoch   60/5000  |  Loss: 0.202198  |  LR: 2.00e-04  |  Time: 2.31s
+  Epoch   70/5000  |  Loss: 0.193182  |  LR: 2.00e-04  |  Time: 2.41s
+  Epoch   80/5000  |  Loss: 0.180354  |  LR: 2.00e-04  |  Time: 2.19s
+  Epoch   90/5000  |  Loss: 0.181949  |  LR: 2.00e-04  |  Time: 2.13s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0099.pt
+  Epoch  100/5000  |  Loss: 0.159390  |  LR: 2.00e-04  |  Time: 2.10s
+  Epoch  110/5000  |  Loss: 0.164223  |  LR: 2.00e-04  |  Time: 2.25s
+  Epoch  120/5000  |  Loss: 0.157936  |  LR: 2.00e-04  |  Time: 2.18s
+  Epoch  130/5000  |  Loss: 0.150619  |  LR: 2.00e-04  |  Time: 2.22s
+  Epoch  140/5000  |  Loss: 0.145846  |  LR: 2.00e-04  |  Time: 2.22s
+  Epoch  150/5000  |  Loss: 0.143565  |  LR: 2.00e-04  |  Time: 2.15s
+  Epoch  160/5000  |  Loss: 0.133803  |  LR: 1.99e-04  |  Time: 2.09s
+  Epoch  170/5000  |  Loss: 0.135312  |  LR: 1.99e-04  |  Time: 2.23s
+  Epoch  180/5000  |  Loss: 0.131944  |  LR: 1.99e-04  |  Time: 2.15s
+  Epoch  190/5000  |  Loss: 0.132134  |  LR: 1.99e-04  |  Time: 2.19s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0199.pt
+  Epoch  200/5000  |  Loss: 0.125511  |  LR: 1.99e-04  |  Time: 2.00s
+  Epoch  210/5000  |  Loss: 0.126429  |  LR: 1.99e-04  |  Time: 2.17s
+  Epoch  220/5000  |  Loss: 0.127064  |  LR: 1.99e-04  |  Time: 2.20s
+  Epoch  230/5000  |  Loss: 0.115580  |  LR: 1.99e-04  |  Time: 2.22s
+  Epoch  240/5000  |  Loss: 0.120608  |  LR: 1.99e-04  |  Time: 2.30s
+  Epoch  250/5000  |  Loss: 0.112959  |  LR: 1.99e-04  |  Time: 2.18s
+  Epoch  260/5000  |  Loss: 0.115078  |  LR: 1.99e-04  |  Time: 2.17s
+  Epoch  270/5000  |  Loss: 0.109779  |  LR: 1.99e-04  |  Time: 2.30s
+  Epoch  280/5000  |  Loss: 0.108622  |  LR: 1.98e-04  |  Time: 2.19s
+  Epoch  290/5000  |  Loss: 0.109056  |  LR: 1.98e-04  |  Time: 2.13s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0299.pt
+  Epoch  300/5000  |  Loss: 0.104560  |  LR: 1.98e-04  |  Time: 1.99s
+  Epoch  310/5000  |  Loss: 0.103062  |  LR: 1.98e-04  |  Time: 1.88s
+  Epoch  320/5000  |  Loss: 0.101837  |  LR: 1.98e-04  |  Time: 2.16s
+  Epoch  330/5000  |  Loss: 0.102506  |  LR: 1.98e-04  |  Time: 2.10s
+  Epoch  340/5000  |  Loss: 0.098007  |  LR: 1.98e-04  |  Time: 2.23s
+  Epoch  350/5000  |  Loss: 0.095904  |  LR: 1.98e-04  |  Time: 2.17s
+  Epoch  360/5000  |  Loss: 0.098147  |  LR: 1.97e-04  |  Time: 2.20s
+  Epoch  370/5000  |  Loss: 0.097579  |  LR: 1.97e-04  |  Time: 2.13s
+  Epoch  380/5000  |  Loss: 0.098583  |  LR: 1.97e-04  |  Time: 2.13s
+  Epoch  390/5000  |  Loss: 0.090137  |  LR: 1.97e-04  |  Time: 2.20s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0399.pt
+  Epoch  400/5000  |  Loss: 0.094271  |  LR: 1.97e-04  |  Time: 2.09s
+  Epoch  410/5000  |  Loss: 0.092962  |  LR: 1.97e-04  |  Time: 2.13s
+  Epoch  420/5000  |  Loss: 0.088712  |  LR: 1.97e-04  |  Time: 2.30s
+  Epoch  430/5000  |  Loss: 0.089181  |  LR: 1.96e-04  |  Time: 1.98s
+  Epoch  440/5000  |  Loss: 0.091010  |  LR: 1.96e-04  |  Time: 2.52s
+  Epoch  450/5000  |  Loss: 0.086209  |  LR: 1.96e-04  |  Time: 2.06s
+  Epoch  460/5000  |  Loss: 0.085091  |  LR: 1.96e-04  |  Time: 2.18s
+  Epoch  470/5000  |  Loss: 0.086226  |  LR: 1.96e-04  |  Time: 2.11s
+  Epoch  480/5000  |  Loss: 0.084668  |  LR: 1.95e-04  |  Time: 2.16s
+  Epoch  490/5000  |  Loss: 0.081455  |  LR: 1.95e-04  |  Time: 2.03s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0499.pt
+  Epoch  500/5000  |  Loss: 0.081424  |  LR: 1.95e-04  |  Time: 2.04s
+  Epoch  510/5000  |  Loss: 0.081010  |  LR: 1.95e-04  |  Time: 2.15s
+  Epoch  520/5000  |  Loss: 0.075680  |  LR: 1.95e-04  |  Time: 2.16s
+  Epoch  530/5000  |  Loss: 0.082396  |  LR: 1.95e-04  |  Time: 2.51s
+  Epoch  540/5000  |  Loss: 0.075789  |  LR: 1.94e-04  |  Time: 2.17s
+  Epoch  550/5000  |  Loss: 0.079003  |  LR: 1.94e-04  |  Time: 2.16s
+  Epoch  560/5000  |  Loss: 0.077724  |  LR: 1.94e-04  |  Time: 2.12s
+  Epoch  570/5000  |  Loss: 0.075223  |  LR: 1.94e-04  |  Time: 2.19s
+  Epoch  580/5000  |  Loss: 0.074916  |  LR: 1.93e-04  |  Time: 2.16s
+  Epoch  590/5000  |  Loss: 0.076028  |  LR: 1.93e-04  |  Time: 2.40s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0599.pt
+  Epoch  600/5000  |  Loss: 0.072150  |  LR: 1.93e-04  |  Time: 1.97s
+  Epoch  610/5000  |  Loss: 0.072549  |  LR: 1.93e-04  |  Time: 2.13s
+  Epoch  620/5000  |  Loss: 0.077060  |  LR: 1.93e-04  |  Time: 2.18s
+  Epoch  630/5000  |  Loss: 0.073472  |  LR: 1.92e-04  |  Time: 2.12s
+  Epoch  640/5000  |  Loss: 0.073284  |  LR: 1.92e-04  |  Time: 2.13s
+  Epoch  650/5000  |  Loss: 0.069841  |  LR: 1.92e-04  |  Time: 2.17s
+  Epoch  660/5000  |  Loss: 0.071049  |  LR: 1.92e-04  |  Time: 2.49s
+  Epoch  670/5000  |  Loss: 0.071719  |  LR: 1.91e-04  |  Time: 2.21s
+  Epoch  680/5000  |  Loss: 0.072958  |  LR: 1.91e-04  |  Time: 2.15s
+  Epoch  690/5000  |  Loss: 0.068160  |  LR: 1.91e-04  |  Time: 2.45s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0699.pt
+  Epoch  700/5000  |  Loss: 0.068581  |  LR: 1.91e-04  |  Time: 2.04s
+  Epoch  710/5000  |  Loss: 0.066151  |  LR: 1.90e-04  |  Time: 2.18s
+  Epoch  720/5000  |  Loss: 0.066974  |  LR: 1.90e-04  |  Time: 2.17s
+  Epoch  730/5000  |  Loss: 0.068392  |  LR: 1.90e-04  |  Time: 2.27s
+  Epoch  740/5000  |  Loss: 0.064128  |  LR: 1.89e-04  |  Time: 2.05s
+  Epoch  750/5000  |  Loss: 0.070583  |  LR: 1.89e-04  |  Time: 2.13s
+  Epoch  760/5000  |  Loss: 0.064462  |  LR: 1.89e-04  |  Time: 2.04s
+  Epoch  770/5000  |  Loss: 0.065862  |  LR: 1.89e-04  |  Time: 2.23s
+  Epoch  780/5000  |  Loss: 0.063258  |  LR: 1.88e-04  |  Time: 2.18s
+  Epoch  790/5000  |  Loss: 0.060758  |  LR: 1.88e-04  |  Time: 2.04s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0799.pt
+  Epoch  800/5000  |  Loss: 0.065422  |  LR: 1.88e-04  |  Time: 2.06s
+  Epoch  810/5000  |  Loss: 0.059813  |  LR: 1.87e-04  |  Time: 2.17s
+  Epoch  820/5000  |  Loss: 0.064006  |  LR: 1.87e-04  |  Time: 2.49s
+  Epoch  830/5000  |  Loss: 0.065544  |  LR: 1.87e-04  |  Time: 2.15s
+  Epoch  840/5000  |  Loss: 0.066887  |  LR: 1.86e-04  |  Time: 2.19s
+  Epoch  850/5000  |  Loss: 0.061764  |  LR: 1.86e-04  |  Time: 2.15s
+  Epoch  860/5000  |  Loss: 0.061796  |  LR: 1.86e-04  |  Time: 2.28s
+  Epoch  870/5000  |  Loss: 0.060731  |  LR: 1.85e-04  |  Time: 2.19s
+  Epoch  880/5000  |  Loss: 0.061076  |  LR: 1.85e-04  |  Time: 2.18s
+  Epoch  890/5000  |  Loss: 0.060909  |  LR: 1.85e-04  |  Time: 2.20s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0899.pt
+  Epoch  900/5000  |  Loss: 0.059620  |  LR: 1.84e-04  |  Time: 2.08s
+  Epoch  910/5000  |  Loss: 0.059726  |  LR: 1.84e-04  |  Time: 2.16s
+  Epoch  920/5000  |  Loss: 0.059657  |  LR: 1.84e-04  |  Time: 2.27s
+  Epoch  930/5000  |  Loss: 0.059598  |  LR: 1.83e-04  |  Time: 2.06s
+  Epoch  940/5000  |  Loss: 0.060882  |  LR: 1.83e-04  |  Time: 2.21s
+  Epoch  950/5000  |  Loss: 0.062152  |  LR: 1.83e-04  |  Time: 2.23s
+  Epoch  960/5000  |  Loss: 0.056167  |  LR: 1.82e-04  |  Time: 2.20s
+  Epoch  970/5000  |  Loss: 0.058913  |  LR: 1.82e-04  |  Time: 2.11s
+  Epoch  980/5000  |  Loss: 0.059379  |  LR: 1.82e-04  |  Time: 2.21s
+  Epoch  990/5000  |  Loss: 0.056498  |  LR: 1.81e-04  |  Time: 2.21s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_0999.pt
+  Epoch 1000/5000  |  Loss: 0.054078  |  LR: 1.81e-04  |  Time: 1.96s
+  Epoch 1010/5000  |  Loss: 0.055627  |  LR: 1.81e-04  |  Time: 2.41s
+  Epoch 1020/5000  |  Loss: 0.058290  |  LR: 1.80e-04  |  Time: 2.09s
+  Epoch 1030/5000  |  Loss: 0.058833  |  LR: 1.80e-04  |  Time: 2.11s
+  Epoch 1040/5000  |  Loss: 0.058446  |  LR: 1.79e-04  |  Time: 2.03s
+  Epoch 1050/5000  |  Loss: 0.052685  |  LR: 1.79e-04  |  Time: 2.04s
+  Epoch 1060/5000  |  Loss: 0.054911  |  LR: 1.79e-04  |  Time: 2.09s
+  Epoch 1070/5000  |  Loss: 0.053233  |  LR: 1.78e-04  |  Time: 2.17s
+  Epoch 1080/5000  |  Loss: 0.050257  |  LR: 1.78e-04  |  Time: 2.25s
+  Epoch 1090/5000  |  Loss: 0.055251  |  LR: 1.78e-04  |  Time: 2.04s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1099.pt
+  Epoch 1100/5000  |  Loss: 0.054108  |  LR: 1.77e-04  |  Time: 1.91s
+  Epoch 1110/5000  |  Loss: 0.053388  |  LR: 1.77e-04  |  Time: 2.25s
+  Epoch 1120/5000  |  Loss: 0.052635  |  LR: 1.76e-04  |  Time: 2.12s
+  Epoch 1130/5000  |  Loss: 0.053781  |  LR: 1.76e-04  |  Time: 2.35s
+  Epoch 1140/5000  |  Loss: 0.055591  |  LR: 1.76e-04  |  Time: 2.18s
+  Epoch 1150/5000  |  Loss: 0.053836  |  LR: 1.75e-04  |  Time: 2.20s
+  Epoch 1160/5000  |  Loss: 0.051933  |  LR: 1.75e-04  |  Time: 2.14s
+  Epoch 1170/5000  |  Loss: 0.053527  |  LR: 1.74e-04  |  Time: 2.39s
+  Epoch 1180/5000  |  Loss: 0.051744  |  LR: 1.74e-04  |  Time: 2.16s
+  Epoch 1190/5000  |  Loss: 0.052460  |  LR: 1.73e-04  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1199.pt
+  Epoch 1200/5000  |  Loss: 0.051117  |  LR: 1.73e-04  |  Time: 2.31s
+  Epoch 1210/5000  |  Loss: 0.052054  |  LR: 1.73e-04  |  Time: 2.16s
+  Epoch 1220/5000  |  Loss: 0.052210  |  LR: 1.72e-04  |  Time: 2.16s
+  Epoch 1230/5000  |  Loss: 0.052833  |  LR: 1.72e-04  |  Time: 2.26s
+  Epoch 1240/5000  |  Loss: 0.050116  |  LR: 1.71e-04  |  Time: 2.00s
+  Epoch 1250/5000  |  Loss: 0.050368  |  LR: 1.71e-04  |  Time: 2.25s
+  Epoch 1260/5000  |  Loss: 0.047761  |  LR: 1.70e-04  |  Time: 2.20s
+  Epoch 1270/5000  |  Loss: 0.049521  |  LR: 1.70e-04  |  Time: 2.21s
+  Epoch 1280/5000  |  Loss: 0.049180  |  LR: 1.69e-04  |  Time: 2.16s
+  Epoch 1290/5000  |  Loss: 0.051188  |  LR: 1.69e-04  |  Time: 2.28s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1299.pt
+  Epoch 1300/5000  |  Loss: 0.053734  |  LR: 1.69e-04  |  Time: 2.02s
+  Epoch 1310/5000  |  Loss: 0.049274  |  LR: 1.68e-04  |  Time: 2.21s
+  Epoch 1320/5000  |  Loss: 0.052793  |  LR: 1.68e-04  |  Time: 2.13s
+  Epoch 1330/5000  |  Loss: 0.048341  |  LR: 1.67e-04  |  Time: 2.14s
+  Epoch 1340/5000  |  Loss: 0.050588  |  LR: 1.67e-04  |  Time: 2.15s
+  Epoch 1350/5000  |  Loss: 0.049390  |  LR: 1.66e-04  |  Time: 2.13s
+  Epoch 1360/5000  |  Loss: 0.048418  |  LR: 1.66e-04  |  Time: 2.02s
+  Epoch 1370/5000  |  Loss: 0.048158  |  LR: 1.65e-04  |  Time: 2.16s
+  Epoch 1380/5000  |  Loss: 0.048162  |  LR: 1.65e-04  |  Time: 2.11s
+  Epoch 1390/5000  |  Loss: 0.049790  |  LR: 1.64e-04  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1399.pt
+  Epoch 1400/5000  |  Loss: 0.047610  |  LR: 1.64e-04  |  Time: 1.82s
+  Epoch 1410/5000  |  Loss: 0.047600  |  LR: 1.63e-04  |  Time: 2.16s
+  Epoch 1420/5000  |  Loss: 0.046946  |  LR: 1.63e-04  |  Time: 2.16s
+  Epoch 1430/5000  |  Loss: 0.048825  |  LR: 1.62e-04  |  Time: 2.15s
+  Epoch 1440/5000  |  Loss: 0.046476  |  LR: 1.62e-04  |  Time: 2.30s
+  Epoch 1450/5000  |  Loss: 0.047820  |  LR: 1.61e-04  |  Time: 2.12s
+  Epoch 1460/5000  |  Loss: 0.046096  |  LR: 1.61e-04  |  Time: 2.22s
+  Epoch 1470/5000  |  Loss: 0.046698  |  LR: 1.60e-04  |  Time: 2.08s
+  Epoch 1480/5000  |  Loss: 0.046586  |  LR: 1.60e-04  |  Time: 2.15s
+  Epoch 1490/5000  |  Loss: 0.044664  |  LR: 1.59e-04  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1499.pt
+  Epoch 1500/5000  |  Loss: 0.046463  |  LR: 1.59e-04  |  Time: 2.51s
+  Epoch 1510/5000  |  Loss: 0.044655  |  LR: 1.58e-04  |  Time: 2.18s
+  Epoch 1520/5000  |  Loss: 0.045930  |  LR: 1.58e-04  |  Time: 2.16s
+  Epoch 1530/5000  |  Loss: 0.044838  |  LR: 1.57e-04  |  Time: 2.51s
+  Epoch 1540/5000  |  Loss: 0.044353  |  LR: 1.57e-04  |  Time: 2.20s
+  Epoch 1550/5000  |  Loss: 0.044015  |  LR: 1.56e-04  |  Time: 2.16s
+  Epoch 1560/5000  |  Loss: 0.045638  |  LR: 1.56e-04  |  Time: 2.51s
+  Epoch 1570/5000  |  Loss: 0.045999  |  LR: 1.55e-04  |  Time: 2.13s
+  Epoch 1580/5000  |  Loss: 0.048326  |  LR: 1.55e-04  |  Time: 2.03s
+  Epoch 1590/5000  |  Loss: 0.043416  |  LR: 1.54e-04  |  Time: 2.67s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1599.pt
+  Epoch 1600/5000  |  Loss: 0.043091  |  LR: 1.54e-04  |  Time: 2.12s
+  Epoch 1610/5000  |  Loss: 0.049442  |  LR: 1.53e-04  |  Time: 2.15s
+  Epoch 1620/5000  |  Loss: 0.048629  |  LR: 1.53e-04  |  Time: 2.34s
+  Epoch 1630/5000  |  Loss: 0.043730  |  LR: 1.52e-04  |  Time: 2.32s
+  Epoch 1640/5000  |  Loss: 0.043181  |  LR: 1.52e-04  |  Time: 2.13s
+  Epoch 1650/5000  |  Loss: 0.048043  |  LR: 1.51e-04  |  Time: 2.10s
+  Epoch 1660/5000  |  Loss: 0.047046  |  LR: 1.51e-04  |  Time: 2.42s
+  Epoch 1670/5000  |  Loss: 0.045049  |  LR: 1.50e-04  |  Time: 2.11s
+  Epoch 1680/5000  |  Loss: 0.044021  |  LR: 1.49e-04  |  Time: 2.20s
+  Epoch 1690/5000  |  Loss: 0.040859  |  LR: 1.49e-04  |  Time: 2.04s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1699.pt
+  Epoch 1700/5000  |  Loss: 0.045524  |  LR: 1.48e-04  |  Time: 2.06s
+  Epoch 1710/5000  |  Loss: 0.042539  |  LR: 1.48e-04  |  Time: 2.11s
+  Epoch 1720/5000  |  Loss: 0.046095  |  LR: 1.47e-04  |  Time: 2.13s
+  Epoch 1730/5000  |  Loss: 0.042880  |  LR: 1.47e-04  |  Time: 2.48s
+  Epoch 1740/5000  |  Loss: 0.042128  |  LR: 1.46e-04  |  Time: 2.12s
+  Epoch 1750/5000  |  Loss: 0.045533  |  LR: 1.46e-04  |  Time: 2.10s
+  Epoch 1760/5000  |  Loss: 0.041303  |  LR: 1.45e-04  |  Time: 2.08s
+  Epoch 1770/5000  |  Loss: 0.044207  |  LR: 1.44e-04  |  Time: 2.15s
+  Epoch 1780/5000  |  Loss: 0.044634  |  LR: 1.44e-04  |  Time: 2.15s
+  Epoch 1790/5000  |  Loss: 0.041784  |  LR: 1.43e-04  |  Time: 2.18s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1799.pt
+  Epoch 1800/5000  |  Loss: 0.041893  |  LR: 1.43e-04  |  Time: 2.20s
+  Epoch 1810/5000  |  Loss: 0.043937  |  LR: 1.42e-04  |  Time: 2.29s
+  Epoch 1820/5000  |  Loss: 0.044367  |  LR: 1.42e-04  |  Time: 1.92s
+  Epoch 1830/5000  |  Loss: 0.044137  |  LR: 1.41e-04  |  Time: 2.22s
+  Epoch 1840/5000  |  Loss: 0.043462  |  LR: 1.41e-04  |  Time: 2.07s
+  Epoch 1850/5000  |  Loss: 0.043907  |  LR: 1.40e-04  |  Time: 2.13s
+  Epoch 1860/5000  |  Loss: 0.044437  |  LR: 1.39e-04  |  Time: 2.18s
+  Epoch 1870/5000  |  Loss: 0.040541  |  LR: 1.39e-04  |  Time: 2.22s
+  Epoch 1880/5000  |  Loss: 0.043808  |  LR: 1.38e-04  |  Time: 2.07s
+  Epoch 1890/5000  |  Loss: 0.036790  |  LR: 1.38e-04  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1899.pt
+  Epoch 1900/5000  |  Loss: 0.043606  |  LR: 1.37e-04  |  Time: 2.06s
+  Epoch 1910/5000  |  Loss: 0.041172  |  LR: 1.36e-04  |  Time: 2.19s
+  Epoch 1920/5000  |  Loss: 0.042261  |  LR: 1.36e-04  |  Time: 2.13s
+  Epoch 1930/5000  |  Loss: 0.040665  |  LR: 1.35e-04  |  Time: 2.18s
+  Epoch 1940/5000  |  Loss: 0.040365  |  LR: 1.35e-04  |  Time: 2.16s
+  Epoch 1950/5000  |  Loss: 0.039574  |  LR: 1.34e-04  |  Time: 2.33s
+  Epoch 1960/5000  |  Loss: 0.039061  |  LR: 1.34e-04  |  Time: 2.37s
+  Epoch 1970/5000  |  Loss: 0.039932  |  LR: 1.33e-04  |  Time: 2.10s
+  Epoch 1980/5000  |  Loss: 0.042944  |  LR: 1.32e-04  |  Time: 2.20s
+  Epoch 1990/5000  |  Loss: 0.039712  |  LR: 1.32e-04  |  Time: 2.47s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_1999.pt
+  Epoch 2000/5000  |  Loss: 0.037852  |  LR: 1.31e-04  |  Time: 2.05s
+  Epoch 2010/5000  |  Loss: 0.039963  |  LR: 1.31e-04  |  Time: 2.07s
+  Epoch 2020/5000  |  Loss: 0.039713  |  LR: 1.30e-04  |  Time: 2.12s
+  Epoch 2030/5000  |  Loss: 0.037679  |  LR: 1.29e-04  |  Time: 2.17s
+  Epoch 2040/5000  |  Loss: 0.041294  |  LR: 1.29e-04  |  Time: 2.21s
+  Epoch 2050/5000  |  Loss: 0.037307  |  LR: 1.28e-04  |  Time: 2.19s
+  Epoch 2060/5000  |  Loss: 0.039689  |  LR: 1.28e-04  |  Time: 2.15s
+  Epoch 2070/5000  |  Loss: 0.039972  |  LR: 1.27e-04  |  Time: 2.16s
+  Epoch 2080/5000  |  Loss: 0.041343  |  LR: 1.26e-04  |  Time: 1.91s
+  Epoch 2090/5000  |  Loss: 0.038898  |  LR: 1.26e-04  |  Time: 2.11s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2099.pt
+  Epoch 2100/5000  |  Loss: 0.039604  |  LR: 1.25e-04  |  Time: 2.02s
+  Epoch 2110/5000  |  Loss: 0.041212  |  LR: 1.25e-04  |  Time: 2.11s
+  Epoch 2120/5000  |  Loss: 0.038835  |  LR: 1.24e-04  |  Time: 2.21s
+  Epoch 2130/5000  |  Loss: 0.038452  |  LR: 1.23e-04  |  Time: 2.15s
+  Epoch 2140/5000  |  Loss: 0.040228  |  LR: 1.23e-04  |  Time: 2.35s
+  Epoch 2150/5000  |  Loss: 0.037589  |  LR: 1.22e-04  |  Time: 2.14s
+  Epoch 2160/5000  |  Loss: 0.037901  |  LR: 1.22e-04  |  Time: 2.15s
+  Epoch 2170/5000  |  Loss: 0.038067  |  LR: 1.21e-04  |  Time: 2.32s
+  Epoch 2180/5000  |  Loss: 0.036950  |  LR: 1.20e-04  |  Time: 2.13s
+  Epoch 2190/5000  |  Loss: 0.040020  |  LR: 1.20e-04  |  Time: 2.12s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2199.pt
+  Epoch 2200/5000  |  Loss: 0.039092  |  LR: 1.19e-04  |  Time: 2.09s
+  Epoch 2210/5000  |  Loss: 0.035996  |  LR: 1.18e-04  |  Time: 2.05s
+  Epoch 2220/5000  |  Loss: 0.038678  |  LR: 1.18e-04  |  Time: 2.18s
+  Epoch 2230/5000  |  Loss: 0.035949  |  LR: 1.17e-04  |  Time: 2.10s
+  Epoch 2240/5000  |  Loss: 0.038646  |  LR: 1.17e-04  |  Time: 2.16s
+  Epoch 2250/5000  |  Loss: 0.037248  |  LR: 1.16e-04  |  Time: 1.90s
+  Epoch 2260/5000  |  Loss: 0.038027  |  LR: 1.15e-04  |  Time: 2.24s
+  Epoch 2270/5000  |  Loss: 0.038038  |  LR: 1.15e-04  |  Time: 2.19s
+  Epoch 2280/5000  |  Loss: 0.036730  |  LR: 1.14e-04  |  Time: 2.15s
+  Epoch 2290/5000  |  Loss: 0.036020  |  LR: 1.14e-04  |  Time: 2.13s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2299.pt
+  Epoch 2300/5000  |  Loss: 0.034189  |  LR: 1.13e-04  |  Time: 2.09s
+  Epoch 2310/5000  |  Loss: 0.037924  |  LR: 1.12e-04  |  Time: 2.11s
+  Epoch 2320/5000  |  Loss: 0.034993  |  LR: 1.12e-04  |  Time: 2.14s
+  Epoch 2330/5000  |  Loss: 0.038931  |  LR: 1.11e-04  |  Time: 2.17s
+  Epoch 2340/5000  |  Loss: 0.035621  |  LR: 1.10e-04  |  Time: 2.09s
+  Epoch 2350/5000  |  Loss: 0.034541  |  LR: 1.10e-04  |  Time: 2.20s
+  Epoch 2360/5000  |  Loss: 0.036724  |  LR: 1.09e-04  |  Time: 2.16s
+  Epoch 2370/5000  |  Loss: 0.038152  |  LR: 1.09e-04  |  Time: 2.08s
+  Epoch 2380/5000  |  Loss: 0.033871  |  LR: 1.08e-04  |  Time: 2.16s
+  Epoch 2390/5000  |  Loss: 0.033869  |  LR: 1.07e-04  |  Time: 2.17s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2399.pt
+  Epoch 2400/5000  |  Loss: 0.032759  |  LR: 1.07e-04  |  Time: 2.01s
+  Epoch 2410/5000  |  Loss: 0.035451  |  LR: 1.06e-04  |  Time: 1.91s
+  Epoch 2420/5000  |  Loss: 0.033992  |  LR: 1.05e-04  |  Time: 1.97s
+  Epoch 2430/5000  |  Loss: 0.031795  |  LR: 1.05e-04  |  Time: 2.25s
+  Epoch 2440/5000  |  Loss: 0.035696  |  LR: 1.04e-04  |  Time: 2.22s
+  Epoch 2450/5000  |  Loss: 0.033445  |  LR: 1.04e-04  |  Time: 2.20s
+  Epoch 2460/5000  |  Loss: 0.033009  |  LR: 1.03e-04  |  Time: 2.23s
+  Epoch 2470/5000  |  Loss: 0.032757  |  LR: 1.02e-04  |  Time: 2.04s
+  Epoch 2480/5000  |  Loss: 0.033146  |  LR: 1.02e-04  |  Time: 2.13s
+  Epoch 2490/5000  |  Loss: 0.035346  |  LR: 1.01e-04  |  Time: 2.10s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2499.pt
+  Epoch 2500/5000  |  Loss: 0.032745  |  LR: 1.00e-04  |  Time: 2.13s
+  Epoch 2510/5000  |  Loss: 0.034467  |  LR: 9.98e-05  |  Time: 2.14s
+  Epoch 2520/5000  |  Loss: 0.033339  |  LR: 9.92e-05  |  Time: 2.15s
+  Epoch 2530/5000  |  Loss: 0.033520  |  LR: 9.86e-05  |  Time: 2.17s
+  Epoch 2540/5000  |  Loss: 0.033589  |  LR: 9.79e-05  |  Time: 2.21s
+  Epoch 2550/5000  |  Loss: 0.031617  |  LR: 9.73e-05  |  Time: 2.18s
+  Epoch 2560/5000  |  Loss: 0.033021  |  LR: 9.67e-05  |  Time: 2.24s
+  Epoch 2570/5000  |  Loss: 0.033416  |  LR: 9.61e-05  |  Time: 2.07s
+  Epoch 2580/5000  |  Loss: 0.033366  |  LR: 9.54e-05  |  Time: 2.10s
+  Epoch 2590/5000  |  Loss: 0.029340  |  LR: 9.48e-05  |  Time: 2.32s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2599.pt
+  Epoch 2600/5000  |  Loss: 0.032718  |  LR: 9.42e-05  |  Time: 2.09s
+  Epoch 2610/5000  |  Loss: 0.033193  |  LR: 9.36e-05  |  Time: 2.17s
+  Epoch 2620/5000  |  Loss: 0.032225  |  LR: 9.29e-05  |  Time: 2.08s
+  Epoch 2630/5000  |  Loss: 0.032425  |  LR: 9.23e-05  |  Time: 2.14s
+  Epoch 2640/5000  |  Loss: 0.032998  |  LR: 9.17e-05  |  Time: 2.14s
+  Epoch 2650/5000  |  Loss: 0.033102  |  LR: 9.11e-05  |  Time: 2.27s
+  Epoch 2660/5000  |  Loss: 0.033172  |  LR: 9.05e-05  |  Time: 2.15s
+  Epoch 2670/5000  |  Loss: 0.031253  |  LR: 8.98e-05  |  Time: 2.20s
+  Epoch 2680/5000  |  Loss: 0.032085  |  LR: 8.92e-05  |  Time: 2.12s
+  Epoch 2690/5000  |  Loss: 0.032261  |  LR: 8.86e-05  |  Time: 2.15s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2699.pt
+  Epoch 2700/5000  |  Loss: 0.031259  |  LR: 8.80e-05  |  Time: 2.01s
+  Epoch 2710/5000  |  Loss: 0.032145  |  LR: 8.73e-05  |  Time: 2.39s
+  Epoch 2720/5000  |  Loss: 0.030558  |  LR: 8.67e-05  |  Time: 2.14s
+  Epoch 2730/5000  |  Loss: 0.031360  |  LR: 8.61e-05  |  Time: 2.17s
+  Epoch 2740/5000  |  Loss: 0.030360  |  LR: 8.55e-05  |  Time: 2.50s
+  Epoch 2750/5000  |  Loss: 0.030142  |  LR: 8.49e-05  |  Time: 2.12s
+  Epoch 2760/5000  |  Loss: 0.029299  |  LR: 8.43e-05  |  Time: 2.19s
+  Epoch 2770/5000  |  Loss: 0.033510  |  LR: 8.36e-05  |  Time: 2.07s
+  Epoch 2780/5000  |  Loss: 0.030421  |  LR: 8.30e-05  |  Time: 2.11s
+  Epoch 2790/5000  |  Loss: 0.031306  |  LR: 8.24e-05  |  Time: 2.09s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2799.pt
+  Epoch 2800/5000  |  Loss: 0.030144  |  LR: 8.18e-05  |  Time: 2.03s
+  Epoch 2810/5000  |  Loss: 0.032619  |  LR: 8.12e-05  |  Time: 2.01s
+  Epoch 2820/5000  |  Loss: 0.032351  |  LR: 8.06e-05  |  Time: 2.16s
+  Epoch 2830/5000  |  Loss: 0.029270  |  LR: 8.00e-05  |  Time: 2.15s
+  Epoch 2840/5000  |  Loss: 0.028552  |  LR: 7.93e-05  |  Time: 1.98s
+  Epoch 2850/5000  |  Loss: 0.030659  |  LR: 7.87e-05  |  Time: 2.17s
+  Epoch 2860/5000  |  Loss: 0.030852  |  LR: 7.81e-05  |  Time: 2.05s
+  Epoch 2870/5000  |  Loss: 0.031415  |  LR: 7.75e-05  |  Time: 2.51s
+  Epoch 2880/5000  |  Loss: 0.028569  |  LR: 7.69e-05  |  Time: 2.11s
+  Epoch 2890/5000  |  Loss: 0.030521  |  LR: 7.63e-05  |  Time: 2.13s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2899.pt
+  Epoch 2900/5000  |  Loss: 0.029927  |  LR: 7.57e-05  |  Time: 2.03s
+  Epoch 2910/5000  |  Loss: 0.029203  |  LR: 7.51e-05  |  Time: 2.29s
+  Epoch 2920/5000  |  Loss: 0.029118  |  LR: 7.45e-05  |  Time: 2.13s
+  Epoch 2930/5000  |  Loss: 0.029655  |  LR: 7.39e-05  |  Time: 2.16s
+  Epoch 2940/5000  |  Loss: 0.028980  |  LR: 7.33e-05  |  Time: 2.27s
+  Epoch 2950/5000  |  Loss: 0.028693  |  LR: 7.27e-05  |  Time: 2.19s
+  Epoch 2960/5000  |  Loss: 0.028730  |  LR: 7.21e-05  |  Time: 2.07s
+  Epoch 2970/5000  |  Loss: 0.029281  |  LR: 7.15e-05  |  Time: 2.14s
+  Epoch 2980/5000  |  Loss: 0.027880  |  LR: 7.09e-05  |  Time: 2.17s
+  Epoch 2990/5000  |  Loss: 0.031047  |  LR: 7.03e-05  |  Time: 2.18s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_2999.pt
+  Epoch 3000/5000  |  Loss: 0.030596  |  LR: 6.97e-05  |  Time: 2.23s
+  Epoch 3010/5000  |  Loss: 0.028704  |  LR: 6.91e-05  |  Time: 1.80s
+  Epoch 3020/5000  |  Loss: 0.029016  |  LR: 6.85e-05  |  Time: 2.11s
+  Epoch 3030/5000  |  Loss: 0.029019  |  LR: 6.79e-05  |  Time: 2.09s
+  Epoch 3040/5000  |  Loss: 0.026608  |  LR: 6.73e-05  |  Time: 2.30s
+  Epoch 3050/5000  |  Loss: 0.029220  |  LR: 6.67e-05  |  Time: 2.22s
+  Epoch 3060/5000  |  Loss: 0.027442  |  LR: 6.61e-05  |  Time: 2.17s
+  Epoch 3070/5000  |  Loss: 0.028207  |  LR: 6.56e-05  |  Time: 2.06s
+  Epoch 3080/5000  |  Loss: 0.027962  |  LR: 6.50e-05  |  Time: 2.19s
+  Epoch 3090/5000  |  Loss: 0.028513  |  LR: 6.44e-05  |  Time: 2.18s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3099.pt
+  Epoch 3100/5000  |  Loss: 0.027896  |  LR: 6.38e-05  |  Time: 2.39s
+  Epoch 3110/5000  |  Loss: 0.027878  |  LR: 6.32e-05  |  Time: 2.17s
+  Epoch 3120/5000  |  Loss: 0.027369  |  LR: 6.27e-05  |  Time: 2.10s
+  Epoch 3130/5000  |  Loss: 0.027745  |  LR: 6.21e-05  |  Time: 2.10s
+  Epoch 3140/5000  |  Loss: 0.027846  |  LR: 6.15e-05  |  Time: 2.13s
+  Epoch 3150/5000  |  Loss: 0.027178  |  LR: 6.09e-05  |  Time: 2.14s
+  Epoch 3160/5000  |  Loss: 0.028482  |  LR: 6.04e-05  |  Time: 2.26s
+  Epoch 3170/5000  |  Loss: 0.028004  |  LR: 5.98e-05  |  Time: 2.19s
+  Epoch 3180/5000  |  Loss: 0.026444  |  LR: 5.92e-05  |  Time: 2.32s
+  Epoch 3190/5000  |  Loss: 0.027621  |  LR: 5.86e-05  |  Time: 2.21s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3199.pt
+  Epoch 3200/5000  |  Loss: 0.025726  |  LR: 5.81e-05  |  Time: 2.14s
+  Epoch 3210/5000  |  Loss: 0.028091  |  LR: 5.75e-05  |  Time: 2.14s
+  Epoch 3220/5000  |  Loss: 0.027828  |  LR: 5.70e-05  |  Time: 2.30s
+  Epoch 3230/5000  |  Loss: 0.027559  |  LR: 5.64e-05  |  Time: 2.21s
+  Epoch 3240/5000  |  Loss: 0.028033  |  LR: 5.58e-05  |  Time: 2.15s
+  Epoch 3250/5000  |  Loss: 0.027192  |  LR: 5.53e-05  |  Time: 2.14s
+  Epoch 3260/5000  |  Loss: 0.025361  |  LR: 5.47e-05  |  Time: 2.15s
+  Epoch 3270/5000  |  Loss: 0.027124  |  LR: 5.42e-05  |  Time: 2.15s
+  Epoch 3280/5000  |  Loss: 0.029686  |  LR: 5.36e-05  |  Time: 2.19s
+  Epoch 3290/5000  |  Loss: 0.025371  |  LR: 5.31e-05  |  Time: 2.13s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3299.pt
+  Epoch 3300/5000  |  Loss: 0.027001  |  LR: 5.25e-05  |  Time: 2.01s
+  Epoch 3310/5000  |  Loss: 0.026050  |  LR: 5.20e-05  |  Time: 2.09s
+  Epoch 3320/5000  |  Loss: 0.028372  |  LR: 5.14e-05  |  Time: 2.26s
+  Epoch 3330/5000  |  Loss: 0.024371  |  LR: 5.09e-05  |  Time: 2.18s
+  Epoch 3340/5000  |  Loss: 0.025744  |  LR: 5.03e-05  |  Time: 2.20s
+  Epoch 3350/5000  |  Loss: 0.025814  |  LR: 4.98e-05  |  Time: 2.26s
+  Epoch 3360/5000  |  Loss: 0.025195  |  LR: 4.93e-05  |  Time: 2.19s
+  Epoch 3370/5000  |  Loss: 0.027668  |  LR: 4.87e-05  |  Time: 2.04s
+  Epoch 3380/5000  |  Loss: 0.026189  |  LR: 4.82e-05  |  Time: 2.15s
+  Epoch 3390/5000  |  Loss: 0.024525  |  LR: 4.77e-05  |  Time: 2.14s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3399.pt
+  Epoch 3400/5000  |  Loss: 0.027376  |  LR: 4.71e-05  |  Time: 2.03s
+  Epoch 3410/5000  |  Loss: 0.025293  |  LR: 4.66e-05  |  Time: 1.82s
+  Epoch 3420/5000  |  Loss: 0.027396  |  LR: 4.61e-05  |  Time: 2.25s
+  Epoch 3430/5000  |  Loss: 0.025314  |  LR: 4.56e-05  |  Time: 1.99s
+  Epoch 3440/5000  |  Loss: 0.026556  |  LR: 4.50e-05  |  Time: 2.15s
+  Epoch 3450/5000  |  Loss: 0.025631  |  LR: 4.45e-05  |  Time: 2.15s
+  Epoch 3460/5000  |  Loss: 0.025824  |  LR: 4.40e-05  |  Time: 2.18s
+  Epoch 3470/5000  |  Loss: 0.026336  |  LR: 4.35e-05  |  Time: 2.23s
+  Epoch 3480/5000  |  Loss: 0.025754  |  LR: 4.30e-05  |  Time: 2.14s
+  Epoch 3490/5000  |  Loss: 0.025139  |  LR: 4.25e-05  |  Time: 2.14s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3499.pt
+  Epoch 3500/5000  |  Loss: 0.026637  |  LR: 4.20e-05  |  Time: 2.15s
+  Epoch 3510/5000  |  Loss: 0.024715  |  LR: 4.15e-05  |  Time: 2.15s
+  Epoch 3520/5000  |  Loss: 0.025522  |  LR: 4.10e-05  |  Time: 2.22s
+  Epoch 3530/5000  |  Loss: 0.024019  |  LR: 4.05e-05  |  Time: 2.15s
+  Epoch 3540/5000  |  Loss: 0.027721  |  LR: 4.00e-05  |  Time: 2.17s
+  Epoch 3550/5000  |  Loss: 0.024936  |  LR: 3.95e-05  |  Time: 2.35s
+  Epoch 3560/5000  |  Loss: 0.024767  |  LR: 3.90e-05  |  Time: 2.12s
+  Epoch 3570/5000  |  Loss: 0.024311  |  LR: 3.85e-05  |  Time: 2.12s
+  Epoch 3580/5000  |  Loss: 0.023972  |  LR: 3.80e-05  |  Time: 2.17s
+  Epoch 3590/5000  |  Loss: 0.026134  |  LR: 3.75e-05  |  Time: 2.10s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3599.pt
+  Epoch 3600/5000  |  Loss: 0.024157  |  LR: 3.70e-05  |  Time: 1.82s
+  Epoch 3610/5000  |  Loss: 0.023396  |  LR: 3.65e-05  |  Time: 2.16s
+  Epoch 3620/5000  |  Loss: 0.023952  |  LR: 3.61e-05  |  Time: 2.14s
+  Epoch 3630/5000  |  Loss: 0.023078  |  LR: 3.56e-05  |  Time: 2.14s
+  Epoch 3640/5000  |  Loss: 0.024637  |  LR: 3.51e-05  |  Time: 2.08s
+  Epoch 3650/5000  |  Loss: 0.025656  |  LR: 3.47e-05  |  Time: 2.13s
+  Epoch 3660/5000  |  Loss: 0.024045  |  LR: 3.42e-05  |  Time: 2.21s
+  Epoch 3670/5000  |  Loss: 0.022735  |  LR: 3.37e-05  |  Time: 2.15s
+  Epoch 3680/5000  |  Loss: 0.024346  |  LR: 3.33e-05  |  Time: 2.21s
+  Epoch 3690/5000  |  Loss: 0.024890  |  LR: 3.28e-05  |  Time: 2.13s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3699.pt
+  Epoch 3700/5000  |  Loss: 0.022654  |  LR: 3.23e-05  |  Time: 2.08s
+  Epoch 3710/5000  |  Loss: 0.024505  |  LR: 3.19e-05  |  Time: 2.15s
+  Epoch 3720/5000  |  Loss: 0.024666  |  LR: 3.14e-05  |  Time: 2.12s
+  Epoch 3730/5000  |  Loss: 0.024099  |  LR: 3.10e-05  |  Time: 2.01s
+  Epoch 3740/5000  |  Loss: 0.022300  |  LR: 3.05e-05  |  Time: 2.20s
+  Epoch 3750/5000  |  Loss: 0.024083  |  LR: 3.01e-05  |  Time: 2.10s
+  Epoch 3760/5000  |  Loss: 0.021978  |  LR: 2.97e-05  |  Time: 2.37s
+  Epoch 3770/5000  |  Loss: 0.023750  |  LR: 2.92e-05  |  Time: 2.15s
+  Epoch 3780/5000  |  Loss: 0.023560  |  LR: 2.88e-05  |  Time: 2.21s
+  Epoch 3790/5000  |  Loss: 0.022758  |  LR: 2.84e-05  |  Time: 2.07s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3799.pt
+  Epoch 3800/5000  |  Loss: 0.024535  |  LR: 2.79e-05  |  Time: 2.03s
+  Epoch 3810/5000  |  Loss: 0.024317  |  LR: 2.75e-05  |  Time: 2.21s
+  Epoch 3820/5000  |  Loss: 0.022680  |  LR: 2.71e-05  |  Time: 2.19s
+  Epoch 3830/5000  |  Loss: 0.021822  |  LR: 2.67e-05  |  Time: 2.29s
+  Epoch 3840/5000  |  Loss: 0.022141  |  LR: 2.62e-05  |  Time: 2.16s
+  Epoch 3850/5000  |  Loss: 0.023004  |  LR: 2.58e-05  |  Time: 2.10s
+  Epoch 3860/5000  |  Loss: 0.022942  |  LR: 2.54e-05  |  Time: 2.13s
+  Epoch 3870/5000  |  Loss: 0.023103  |  LR: 2.50e-05  |  Time: 2.13s
+  Epoch 3880/5000  |  Loss: 0.022722  |  LR: 2.46e-05  |  Time: 2.12s
+  Epoch 3890/5000  |  Loss: 0.023220  |  LR: 2.42e-05  |  Time: 2.10s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3899.pt
+  Epoch 3900/5000  |  Loss: 0.022629  |  LR: 2.38e-05  |  Time: 2.06s
+  Epoch 3910/5000  |  Loss: 0.022401  |  LR: 2.34e-05  |  Time: 2.15s
+  Epoch 3920/5000  |  Loss: 0.023854  |  LR: 2.30e-05  |  Time: 2.41s
+  Epoch 3930/5000  |  Loss: 0.023486  |  LR: 2.26e-05  |  Time: 2.10s
+  Epoch 3940/5000  |  Loss: 0.023048  |  LR: 2.22e-05  |  Time: 2.39s
+  Epoch 3950/5000  |  Loss: 0.022936  |  LR: 2.18e-05  |  Time: 2.35s
+  Epoch 3960/5000  |  Loss: 0.023988  |  LR: 2.15e-05  |  Time: 2.16s
+  Epoch 3970/5000  |  Loss: 0.022613  |  LR: 2.11e-05  |  Time: 2.16s
+  Epoch 3980/5000  |  Loss: 0.020677  |  LR: 2.07e-05  |  Time: 2.11s
+  Epoch 3990/5000  |  Loss: 0.022137  |  LR: 2.03e-05  |  Time: 2.20s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_3999.pt
+  Epoch 4000/5000  |  Loss: 0.021992  |  LR: 2.00e-05  |  Time: 2.11s
+  Epoch 4010/5000  |  Loss: 0.021557  |  LR: 1.96e-05  |  Time: 2.26s
+  Epoch 4020/5000  |  Loss: 0.022293  |  LR: 1.92e-05  |  Time: 2.20s
+  Epoch 4030/5000  |  Loss: 0.022329  |  LR: 1.89e-05  |  Time: 2.24s
+  Epoch 4040/5000  |  Loss: 0.020035  |  LR: 1.85e-05  |  Time: 2.07s
+  Epoch 4050/5000  |  Loss: 0.023351  |  LR: 1.82e-05  |  Time: 2.18s
+  Epoch 4060/5000  |  Loss: 0.021849  |  LR: 1.78e-05  |  Time: 2.11s
+  Epoch 4070/5000  |  Loss: 0.021496  |  LR: 1.75e-05  |  Time: 2.11s
+  Epoch 4080/5000  |  Loss: 0.021133  |  LR: 1.71e-05  |  Time: 2.17s
+  Epoch 4090/5000  |  Loss: 0.019967  |  LR: 1.68e-05  |  Time: 2.11s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4099.pt
+  Epoch 4100/5000  |  Loss: 0.022090  |  LR: 1.65e-05  |  Time: 2.03s
+  Epoch 4110/5000  |  Loss: 0.021565  |  LR: 1.61e-05  |  Time: 2.08s
+  Epoch 4120/5000  |  Loss: 0.022809  |  LR: 1.58e-05  |  Time: 2.16s
+  Epoch 4130/5000  |  Loss: 0.022339  |  LR: 1.55e-05  |  Time: 2.15s
+  Epoch 4140/5000  |  Loss: 0.021382  |  LR: 1.51e-05  |  Time: 2.09s
+  Epoch 4150/5000  |  Loss: 0.023891  |  LR: 1.48e-05  |  Time: 2.18s
+  Epoch 4160/5000  |  Loss: 0.020662  |  LR: 1.45e-05  |  Time: 2.14s
+  Epoch 4170/5000  |  Loss: 0.021577  |  LR: 1.42e-05  |  Time: 2.55s
+  Epoch 4180/5000  |  Loss: 0.021105  |  LR: 1.39e-05  |  Time: 2.11s
+  Epoch 4190/5000  |  Loss: 0.021678  |  LR: 1.36e-05  |  Time: 2.19s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4199.pt
+  Epoch 4200/5000  |  Loss: 0.020521  |  LR: 1.33e-05  |  Time: 2.06s
+  Epoch 4210/5000  |  Loss: 0.020477  |  LR: 1.30e-05  |  Time: 1.86s
+  Epoch 4220/5000  |  Loss: 0.021064  |  LR: 1.27e-05  |  Time: 2.14s
+  Epoch 4230/5000  |  Loss: 0.020458  |  LR: 1.24e-05  |  Time: 2.06s
+  Epoch 4240/5000  |  Loss: 0.020465  |  LR: 1.21e-05  |  Time: 2.14s
+  Epoch 4250/5000  |  Loss: 0.020858  |  LR: 1.18e-05  |  Time: 2.06s
+  Epoch 4260/5000  |  Loss: 0.020120  |  LR: 1.15e-05  |  Time: 2.06s
+  Epoch 4270/5000  |  Loss: 0.022105  |  LR: 1.13e-05  |  Time: 2.00s
+  Epoch 4280/5000  |  Loss: 0.021756  |  LR: 1.10e-05  |  Time: 2.15s
+  Epoch 4290/5000  |  Loss: 0.021066  |  LR: 1.07e-05  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4299.pt
+  Epoch 4300/5000  |  Loss: 0.020719  |  LR: 1.04e-05  |  Time: 2.24s
+  Epoch 4310/5000  |  Loss: 0.021392  |  LR: 1.02e-05  |  Time: 2.14s
+  Epoch 4320/5000  |  Loss: 0.020308  |  LR: 9.92e-06  |  Time: 2.06s
+  Epoch 4330/5000  |  Loss: 0.022205  |  LR: 9.66e-06  |  Time: 2.21s
+  Epoch 4340/5000  |  Loss: 0.021340  |  LR: 9.41e-06  |  Time: 2.13s
+  Epoch 4350/5000  |  Loss: 0.021898  |  LR: 9.16e-06  |  Time: 2.15s
+  Epoch 4360/5000  |  Loss: 0.019460  |  LR: 8.91e-06  |  Time: 2.25s
+  Epoch 4370/5000  |  Loss: 0.020302  |  LR: 8.67e-06  |  Time: 2.20s
+  Epoch 4380/5000  |  Loss: 0.019836  |  LR: 8.43e-06  |  Time: 2.16s
+  Epoch 4390/5000  |  Loss: 0.021497  |  LR: 8.20e-06  |  Time: 2.42s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4399.pt
+  Epoch 4400/5000  |  Loss: 0.019349  |  LR: 7.96e-06  |  Time: 2.29s
+  Epoch 4410/5000  |  Loss: 0.022126  |  LR: 7.74e-06  |  Time: 2.17s
+  Epoch 4420/5000  |  Loss: 0.021492  |  LR: 7.51e-06  |  Time: 2.15s
+  Epoch 4430/5000  |  Loss: 0.022293  |  LR: 7.29e-06  |  Time: 2.20s
+  Epoch 4440/5000  |  Loss: 0.019978  |  LR: 7.07e-06  |  Time: 2.13s
+  Epoch 4450/5000  |  Loss: 0.020185  |  LR: 6.86e-06  |  Time: 2.17s
+  Epoch 4460/5000  |  Loss: 0.020155  |  LR: 6.65e-06  |  Time: 2.16s
+  Epoch 4470/5000  |  Loss: 0.019835  |  LR: 6.45e-06  |  Time: 2.20s
+  Epoch 4480/5000  |  Loss: 0.020782  |  LR: 6.24e-06  |  Time: 2.15s
+  Epoch 4490/5000  |  Loss: 0.020716  |  LR: 6.05e-06  |  Time: 2.24s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4499.pt
+  Epoch 4500/5000  |  Loss: 0.019943  |  LR: 5.85e-06  |  Time: 2.09s
+  Epoch 4510/5000  |  Loss: 0.020127  |  LR: 5.66e-06  |  Time: 2.12s
+  Epoch 4520/5000  |  Loss: 0.019324  |  LR: 5.47e-06  |  Time: 2.32s
+  Epoch 4530/5000  |  Loss: 0.020322  |  LR: 5.29e-06  |  Time: 2.16s
+  Epoch 4540/5000  |  Loss: 0.020452  |  LR: 5.11e-06  |  Time: 2.16s
+  Epoch 4550/5000  |  Loss: 0.019867  |  LR: 4.93e-06  |  Time: 2.13s
+  Epoch 4560/5000  |  Loss: 0.020536  |  LR: 4.76e-06  |  Time: 1.97s
+  Epoch 4570/5000  |  Loss: 0.021621  |  LR: 4.59e-06  |  Time: 2.16s
+  Epoch 4580/5000  |  Loss: 0.020727  |  LR: 4.43e-06  |  Time: 2.14s
+  Epoch 4590/5000  |  Loss: 0.018843  |  LR: 4.27e-06  |  Time: 2.50s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4599.pt
+  Epoch 4600/5000  |  Loss: 0.019694  |  LR: 4.11e-06  |  Time: 2.06s
+  Epoch 4610/5000  |  Loss: 0.019735  |  LR: 3.96e-06  |  Time: 2.16s
+  Epoch 4620/5000  |  Loss: 0.020506  |  LR: 3.81e-06  |  Time: 2.14s
+  Epoch 4630/5000  |  Loss: 0.019586  |  LR: 3.66e-06  |  Time: 2.39s
+  Epoch 4640/5000  |  Loss: 0.019855  |  LR: 3.52e-06  |  Time: 2.38s
+  Epoch 4650/5000  |  Loss: 0.019706  |  LR: 3.38e-06  |  Time: 2.39s
+  Epoch 4660/5000  |  Loss: 0.020627  |  LR: 3.25e-06  |  Time: 2.13s
+  Epoch 4670/5000  |  Loss: 0.020724  |  LR: 3.12e-06  |  Time: 2.15s
+  Epoch 4680/5000  |  Loss: 0.021225  |  LR: 2.99e-06  |  Time: 2.18s
+  Epoch 4690/5000  |  Loss: 0.019548  |  LR: 2.87e-06  |  Time: 2.14s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4699.pt
+  Epoch 4700/5000  |  Loss: 0.020235  |  LR: 2.75e-06  |  Time: 2.30s
+  Epoch 4710/5000  |  Loss: 0.020468  |  LR: 2.64e-06  |  Time: 2.15s
+  Epoch 4720/5000  |  Loss: 0.019053  |  LR: 2.52e-06  |  Time: 2.20s
+  Epoch 4730/5000  |  Loss: 0.020496  |  LR: 2.42e-06  |  Time: 2.08s
+  Epoch 4740/5000  |  Loss: 0.021237  |  LR: 2.31e-06  |  Time: 2.08s
+  Epoch 4750/5000  |  Loss: 0.019117  |  LR: 2.22e-06  |  Time: 2.08s
+  Epoch 4760/5000  |  Loss: 0.019118  |  LR: 2.12e-06  |  Time: 2.08s
+  Epoch 4770/5000  |  Loss: 0.020141  |  LR: 2.03e-06  |  Time: 2.14s
+  Epoch 4780/5000  |  Loss: 0.020196  |  LR: 1.94e-06  |  Time: 2.22s
+  Epoch 4790/5000  |  Loss: 0.019795  |  LR: 1.86e-06  |  Time: 2.10s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4799.pt
+  Epoch 4800/5000  |  Loss: 0.020949  |  LR: 1.78e-06  |  Time: 2.06s
+  Epoch 4810/5000  |  Loss: 0.020714  |  LR: 1.70e-06  |  Time: 2.15s
+  Epoch 4820/5000  |  Loss: 0.021377  |  LR: 1.63e-06  |  Time: 2.23s
+  Epoch 4830/5000  |  Loss: 0.020962  |  LR: 1.56e-06  |  Time: 2.19s
+  Epoch 4840/5000  |  Loss: 0.019725  |  LR: 1.50e-06  |  Time: 2.10s
+  Epoch 4850/5000  |  Loss: 0.020541  |  LR: 1.44e-06  |  Time: 2.15s
+  Epoch 4860/5000  |  Loss: 0.018520  |  LR: 1.38e-06  |  Time: 2.47s
+  Epoch 4870/5000  |  Loss: 0.018932  |  LR: 1.33e-06  |  Time: 2.33s
+  Epoch 4880/5000  |  Loss: 0.019667  |  LR: 1.28e-06  |  Time: 2.16s
+  Epoch 4890/5000  |  Loss: 0.019973  |  LR: 1.23e-06  |  Time: 2.40s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4899.pt
+  Epoch 4900/5000  |  Loss: 0.020565  |  LR: 1.19e-06  |  Time: 2.04s
+  Epoch 4910/5000  |  Loss: 0.020045  |  LR: 1.16e-06  |  Time: 2.15s
+  Epoch 4920/5000  |  Loss: 0.019564  |  LR: 1.12e-06  |  Time: 2.15s
+  Epoch 4930/5000  |  Loss: 0.020579  |  LR: 1.09e-06  |  Time: 2.47s
+  Epoch 4940/5000  |  Loss: 0.020840  |  LR: 1.07e-06  |  Time: 2.16s
+  Epoch 4950/5000  |  Loss: 0.019933  |  LR: 1.05e-06  |  Time: 2.15s
+  Epoch 4960/5000  |  Loss: 0.020352  |  LR: 1.03e-06  |  Time: 2.26s
+  Epoch 4970/5000  |  Loss: 0.019465  |  LR: 1.02e-06  |  Time: 2.15s
+  Epoch 4980/5000  |  Loss: 0.019638  |  LR: 1.01e-06  |  Time: 2.21s
+  Epoch 4990/5000  |  Loss: 0.019463  |  LR: 1.00e-06  |  Time: 2.25s
+  Epoch 4999/5000  |  Loss: 0.019883  |  LR: 1.00e-06  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_epoch_4999.pt
+[Utils] Checkpoint saved: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/checkpoint_final.pt
+------------------------------------------------------------
+
+[Done] Training complete!
+  Total time:   10909.7s (181.8 min)
+  Final loss:   0.019883
+  Best loss:    0.018080 (epoch 4706)
+  Run dir:      /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560
+  Scaler:       /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/scaler.pt
+  Loss history: /home/u00134/src/logs/deep_v4_epochs5000_1000T_42s_2560/loss_history.csv

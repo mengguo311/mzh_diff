@@ -26,6 +26,19 @@ parser.add_argument(
     choices=range(1, 7),
     help="Number of figures to generate (1-6, default: 1)",
 )
+parser.add_argument(
+    "--paths",
+    type=int,
+    nargs="+",
+    default=None,
+    help="Indices of specific paths to plot (e.g. --paths 100 200). If not provided, random paths will be selected.",
+)
+parser.add_argument(
+    "--segment-size",
+    type=int,
+    default=1000,
+    help="Size of segments to divide paths for comparing envelope variations (default: 1000)",
+)
 
 args = parser.parse_args()
 
@@ -61,10 +74,20 @@ if len(sp_level_cols) >= 2 and len(dg_level_cols) >= 2:
     print(f"  {len(df_raw)} paths × {len(sp_level_cols)} SP500 timesteps + {len(dg_level_cols)} DGS10 timesteps")
 
 if wide_format:
-    # ── 宽表模式: 随机选取若干独立路径并绘制 ──
-    num_paths_to_plot = min(5, len(df_raw))
-    rng = np.random.RandomState(42)
-    path_indices = sorted(rng.choice(len(df_raw), size=num_paths_to_plot, replace=False))
+    # ── 宽表模式: 选取要绘制的路径 ──
+    if args.paths is not None:
+        path_indices = [idx for idx in args.paths if 0 <= idx < len(df_raw)]
+        if not path_indices:
+            print(f"[Warning] All provided paths in --paths are out of bounds (range: [0, {len(df_raw)-1}]). Falling back to random selection.")
+            args.paths = None
+        else:
+            num_paths_to_plot = len(path_indices)
+    
+    if args.paths is None:
+        num_paths_to_plot = min(20, len(df_raw))
+        rng = np.random.RandomState(42)
+        path_indices = sorted(rng.choice(len(df_raw), size=num_paths_to_plot, replace=False))
+        
     seq_len = len(sp_level_cols)
 
     sp500_all = df_raw[sp_level_cols].values   # (N, seq_len)
@@ -164,6 +187,68 @@ if wide_format:
     fig.savefig(save_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {save_path}")
+
+    # ── 图 4: 分段包络线对比 (0-1000, 1000-2000 等) ──
+    seg_size = args.segment_size
+    num_paths = len(df_raw)
+    segments = []
+    for start_idx in range(0, num_paths, seg_size):
+        end_idx = min(start_idx + seg_size, num_paths)
+        if end_idx - start_idx >= 10:
+            segments.append((start_idx, end_idx))
+            
+    if len(segments) > 0:
+        print(f"Generating segmented envelope comparison ({len(segments)} segments)...")
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 12))
+        x = np.arange(seq_len)
+        
+        try:
+            colormap = plt.colormaps.get_cmap("tab10")
+        except AttributeError:
+            colormap = plt.cm.get_cmap("tab10")
+            
+        for i, (start, end) in enumerate(segments):
+            color = colormap(i % 10)
+            sp_sub = sp500_all[start:end]
+            dg_sub = dgs10_all[start:end]
+            
+            sp_med = np.median(sp_sub, axis=0)
+            sp_lo = np.percentile(sp_sub, 10, axis=0)
+            sp_hi = np.percentile(sp_sub, 90, axis=0)
+            
+            dg_med = np.median(dg_sub, axis=0)
+            dg_lo = np.percentile(dg_sub, 10, axis=0)
+            dg_hi = np.percentile(dg_sub, 90, axis=0)
+            
+            # SP500 Segment
+            ax1.plot(x, sp_med, color=color, linewidth=1.5, label=f"Paths {start}-{end} (Median)")
+            ax1.fill_between(x, sp_lo, sp_hi, color=color, alpha=0.08)
+            ax1.plot(x, sp_lo, color=color, linestyle="--", linewidth=0.8, alpha=0.5)
+            ax1.plot(x, sp_hi, color=color, linestyle="--", linewidth=0.8, alpha=0.5)
+            
+            # DGS10 Segment
+            ax2.plot(x, dg_med, color=color, linewidth=1.5, label=f"Paths {start}-{end} (Median)")
+            ax2.fill_between(x, dg_lo, dg_hi, color=color, alpha=0.08)
+            ax2.plot(x, dg_lo, color=color, linestyle="--", linewidth=0.8, alpha=0.5)
+            ax2.plot(x, dg_hi, color=color, linestyle="--", linewidth=0.8, alpha=0.5)
+            
+        ax1.set_xlabel("Trading Day (within window)")
+        ax1.set_ylabel("S&P 500 Index Level")
+        ax1.set_title(f"S&P 500 Segmented Envelopes (10th-90th pctl + Median, size={seg_size})")
+        ax1.legend(fontsize=8, loc="upper left")
+        ax1.grid(True, alpha=0.3)
+        
+        ax2.set_xlabel("Trading Day (within window)")
+        ax2.set_ylabel("10Y Treasury Yield Level")
+        ax2.set_title(f"10Y Yield Segmented Envelopes (10th-90th pctl + Median, size={seg_size})")
+        ax2.legend(fontsize=8, loc="upper left")
+        ax2.grid(True, alpha=0.3)
+        
+        fig.tight_layout()
+        save_path = os.path.join(output_dir, "04_segmented_envelopes.png")
+        fig.savefig(save_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Saved: {save_path}")
 
     print(f"\nAll wide-format figures generated successfully.")
     print(f"\nPath statistics:")
