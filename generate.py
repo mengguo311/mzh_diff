@@ -30,7 +30,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
-from dataset import TimeSeriesScaler
+from dataset import TimeSeriesDataset, TimeSeriesScaler
 from unet1d import UNet1d
 from scheduler import DDPMScheduler
 from utils import set_seed, EMA
@@ -54,6 +54,12 @@ def parse_args():
                         help="使用 EMA 权重生成 (default: True)")
     parser.add_argument("--no_ema", dest="use_ema", action="store_false",
                         help="使用原始模型权重生成")
+    parser.add_argument("--num_inference_steps", type=int, default=50,
+                        help="DDIM 快速采样步数 (default: 50)")
+    parser.add_argument("--guidance_scale", "-w", type=float, default=3.0,
+                        help="Classifier-Free Guidance 引导权重 w (default: 3.0)")
+    parser.add_argument("--cond_mode", type=str, default="dataset", choices=["dataset", "zero"],
+                        help="条件生成模式 (default: dataset)")
     return parser.parse_args()
 
 
@@ -153,6 +159,19 @@ def generate():
     num_params = sum(p.numel() for p in model.parameters())
     print(f"  U-Net parameters: {num_params:,}")
 
+    # ── 3.5 准备初始条件 ──
+    if args.cond_mode == "dataset":
+        print("\n[Step 2.5] Loading dataset for conditional generation initial states...")
+        dataset = TimeSeriesDataset(scaler=scaler)
+        print(f"  Dataset loaded. Number of available conditions: {len(dataset)}")
+        rng = np.random.default_rng(args.seed)
+        sampled_indices = rng.choice(len(dataset), size=args.num_samples, replace=True)
+        sampled_conditions = [dataset[idx][1] for idx in sampled_indices]
+        sampled_conditions = torch.stack(sampled_conditions).to(device)  # (num_samples, cond_dim)
+    else:
+        print("\n[Step 2.5] Using zero vector as unconditional/null conditions...")
+        sampled_conditions = torch.zeros(args.num_samples, channels, device=device)
+
     # ── 4. 分批生成 ──
     print(f"\n[Step 3] Generating {args.num_samples} paths...")
     model.eval()
@@ -164,16 +183,27 @@ def generate():
 
     while num_remaining > 0:
         batch = min(args.batch_size, num_remaining)
+        batch_start_idx = args.num_samples - num_remaining
         batch_idx += 1
 
         print(f"\n  --- Batch {batch_idx} ({batch} samples) ---")
 
         # 初始化纯高斯噪声
         x_T = torch.randn(batch, channels, seq_len, device=device)
+        
+        # 提取当前 batch 的条件向量
+        c_batch = sampled_conditions[batch_start_idx : batch_start_idx + batch]
 
-        # 逆向去噪
+        # 确定性 DDIM 逆向去噪
         with torch.no_grad():
-            x_0 = scheduler.p_sample_loop(model, x_T=x_T, verbose=True)
+            x_0 = scheduler.ddim_sample_loop(
+                model=model,
+                c=c_batch,
+                x_T=x_T,
+                num_inference_steps=args.num_inference_steps,
+                guidance_scale=args.guidance_scale,
+                verbose=True
+            )
 
         # 还原真实金融量级
         x_real = scaler.inverse_transform(x_0)  # (batch, 2, seq_len)

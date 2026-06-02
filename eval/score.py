@@ -25,6 +25,7 @@ import config
 from dataset import TimeSeriesScaler
 from unet1d import UNet1d
 from scheduler import DDPMScheduler
+from eval.metrics import calculate_1d_wasserstein, calculate_mmd
 
 
 class FinancialScorer:
@@ -118,6 +119,33 @@ class FinancialScorer:
         print("[FinancialScorer] Loading TimeSeriesScaler...")
         self.scaler = TimeSeriesScaler()
         self.scaler.load(scaler_path)
+
+    def compute_distribution_metrics(self, real_norm: torch.Tensor, fake_norm: torch.Tensor) -> dict:
+        """
+        在 GPU 上计算 Wasserstein 距离和 MMD 距离。
+        """
+        r_dev = real_norm.to(self.device)
+        f_dev = fake_norm.to(self.device)
+        
+        # 1D Wasserstein (单通道和联合通道)
+        sp_wass = calculate_1d_wasserstein(r_dev[:, 0, :], f_dev[:, 0, :])
+        dg_wass = calculate_1d_wasserstein(r_dev[:, 1, :], f_dev[:, 1, :])
+        joint_wass = calculate_1d_wasserstein(r_dev, f_dev)
+        
+        # MMD (把每个路径展平为 C * L 的特征向量)
+        B_r, C, L = r_dev.shape
+        B_f = f_dev.shape[0]
+        r_feat = r_dev.reshape(B_r, C * L)
+        f_feat = f_dev.reshape(B_f, C * L)
+        
+        mmd_val = calculate_mmd(r_feat, f_feat)
+        
+        return {
+            "sp_wasserstein": sp_wass,
+            "dg_wasserstein": dg_wass,
+            "joint_wasserstein": joint_wass,
+            "mmd": mmd_val
+        }
 
     def load_and_preprocess_data(self, csv_path: str, target_seq_len: int = None) -> tuple[torch.Tensor, np.ndarray]:
         """
@@ -261,8 +289,10 @@ class FinancialScorer:
             # 使用 DDPMScheduler 前向加噪
             xt = self.scheduler.q_sample(x0, t, noise)
             
+            # 提取初始条件
+            c = x0[:, :, 0]
             # 模型预测噪声
-            noise_pred = self.model(xt, t)
+            noise_pred = self.model(xt, t, c)
             
             # 计算批次 MSE Loss (reduction='mean')
             loss = F.mse_loss(noise_pred, noise, reduction="mean")
@@ -343,17 +373,17 @@ class FinancialScorer:
             "tail_corr": float(tail_corr)
         }
 
-    def calculate_fidelity_score(self, real_facts: dict, fake_facts: dict, real_mse: float, fake_mse: float) -> tuple[float, dict]:
+    def calculate_fidelity_score(self, real_facts: dict, fake_facts: dict, real_mse: float, fake_mse: float, dist_metrics: dict = None) -> tuple[float, dict]:
         """
         计算模型各项指标的偏差，并采用指数衰减形式给出 0-100 的保真度打分 (Fidelity Score)。
         """
         scores = {}
         
-        # 1. DDPM MSE 打分 (权重 20%)
+        # 1. DDPM MSE 打分 (权重 20% / 10%)
         mse_diff = abs(fake_mse - real_mse)
         scores["ddpm_mse"] = max(0.0, 100.0 * np.exp(-mse_diff / (real_mse + 1e-8)))
         
-        # 2. Moments 偏度与峰度打分 (权重 20%，每个指标占 5%)
+        # 2. Moments 偏度与峰度打分 (每个指标占 5%)
         sp_skew_diff = abs(fake_facts["sp_skew"] - real_facts["sp_skew"])
         scores["sp_skew"] = max(0.0, 100.0 * np.exp(-sp_skew_diff / 0.5))
         
@@ -366,7 +396,7 @@ class FinancialScorer:
         dg_kurt_diff = abs(fake_facts["dg_kurt"] - real_facts["dg_kurt"])
         scores["dg_kurt"] = max(0.0, 100.0 * np.exp(-dg_kurt_diff / 1.0))
         
-        # 3. Volatility Clustering ACF 打分 (权重 20%，每个资产占 10%)
+        # 3. Volatility Clustering ACF 打分 (每个资产占 10% / 5%)
         real_sp_acf = np.array(real_facts["sp_acf"])
         fake_sp_acf = np.array(fake_facts["sp_acf"])
         sp_acf_mae = np.mean(np.abs(fake_sp_acf - real_sp_acf))
@@ -377,26 +407,47 @@ class FinancialScorer:
         dg_acf_mae = np.mean(np.abs(fake_dg_acf - real_dg_acf))
         scores["dg_acf"] = max(0.0, 100.0 * np.exp(-dg_acf_mae / 0.05))
         
-        # 4. Tail Dependence 尾部相关性打分 (权重 20%)
+        # 4. Tail Dependence 尾部相关性打分 (权重 20% / 15%)
         tail_diff = abs(fake_facts["tail_corr"] - real_facts["tail_corr"])
         scores["tail_corr"] = max(0.0, 100.0 * np.exp(-tail_diff / 0.2))
         
-        # 5. Unconditional Correlation 无条件相关性打分 (权重 20%)
+        # 5. Unconditional Correlation 无条件相关性打分 (权重 20% / 15%)
         uncond_diff = abs(fake_facts["uncond_corr"] - real_facts["uncond_corr"])
         scores["uncond_corr"] = max(0.0, 100.0 * np.exp(-uncond_diff / 0.1))
         
-        # 综合加权评分
-        weights = {
-            "ddpm_mse": 0.20,
-            "sp_skew": 0.05,
-            "sp_kurt": 0.05,
-            "dg_skew": 0.05,
-            "dg_kurt": 0.05,
-            "sp_acf": 0.10,
-            "dg_acf": 0.10,
-            "tail_corr": 0.20,
-            "uncond_corr": 0.20
-        }
+        # 如果包含高级分布度量，进行加权整合
+        if dist_metrics is not None:
+            # Wasserstein 距离打分 (衰减尺度为 0.2)
+            scores["joint_wasserstein"] = max(0.0, 100.0 * np.exp(-dist_metrics["joint_wasserstein"] / 0.2))
+            # MMD 距离打分 (衰减尺度为 0.1)
+            scores["mmd"] = max(0.0, 100.0 * np.exp(-dist_metrics["mmd"] / 0.1))
+            
+            # 使用重平衡的权重
+            weights = {
+                "ddpm_mse": 0.10,
+                "sp_skew": 0.05,
+                "sp_kurt": 0.05,
+                "dg_skew": 0.05,
+                "dg_kurt": 0.05,
+                "sp_acf": 0.05,
+                "dg_acf": 0.05,
+                "tail_corr": 0.15,
+                "uncond_corr": 0.15,
+                "joint_wasserstein": 0.15,
+                "mmd": 0.20
+            }
+        else:
+            weights = {
+                "ddpm_mse": 0.20,
+                "sp_skew": 0.05,
+                "sp_kurt": 0.05,
+                "dg_skew": 0.05,
+                "dg_kurt": 0.05,
+                "sp_acf": 0.10,
+                "dg_acf": 0.10,
+                "tail_corr": 0.20,
+                "uncond_corr": 0.20
+            }
         
         total_score = sum(scores[key] * weights[key] for key in weights)
         return total_score, scores
@@ -418,9 +469,13 @@ class FinancialScorer:
         real_mse = self.compute_ddpm_mse(real_norm, t_eval=t_eval)
         real_facts = self.compute_stylized_facts(real_raw)
         
+        # 3. 计算 GPU 加速版本的高级概率分布度量
+        print(f"\n[Phase 2.5] Computing Advanced Distribution Metrics on GPU...")
+        dist_metrics = self.compute_distribution_metrics(real_norm, fake_norm)
+        
         print("\n[Phase 3] Scoring Model Performance...")
         total_score, component_scores = self.calculate_fidelity_score(
-            real_facts, fake_facts, real_mse, fake_mse
+            real_facts, fake_facts, real_mse, fake_mse, dist_metrics=dist_metrics
         )
         
         # 组织报告数据
@@ -440,6 +495,7 @@ class FinancialScorer:
                 "ddpm_mse": fake_mse,
                 "stylized_facts": fake_facts
             },
+            "distribution_metrics": dist_metrics,
             "scores": {
                 "total": total_score,
                 "components": component_scores
@@ -510,6 +566,15 @@ class FinancialScorer:
         # 4. Correlation & Tail Dependence
         print(f"| 联合分布关联 | Unconditional Corr | {real_facts['uncond_corr']:.4f} | {fake_facts['uncond_corr']:.4f} | {abs(fake_facts['uncond_corr'] - real_facts['uncond_corr']):.4f} | {comp_scores['uncond_corr']:.2f} |")
         print(f"| 极端尾部相关 | Tail Correlation (< -1.5σ) | {real_facts['tail_corr']:.4f} | {fake_facts['tail_corr']:.4f} | {abs(fake_facts['tail_corr'] - real_facts['tail_corr']):.4f} | {comp_scores['tail_corr']:.2f} |")
+        
+        # 5. Advanced Distribution Metrics
+        if "distribution_metrics" in report:
+            dm = report["distribution_metrics"]
+            print(f"| 分布距离度量 | SP500 1D Wasserstein | 0.000000 | {dm['sp_wasserstein']:.6f} | {dm['sp_wasserstein']:.6f} | - |")
+            print(f"| 分布距离度量 | DGS10 1D Wasserstein | 0.000000 | {dm['dg_wasserstein']:.6f} | {dm['dg_wasserstein']:.6f} | - |")
+            print(f"| 分布距离度量 | Joint 1D Wasserstein | 0.000000 | {dm['joint_wasserstein']:.6f} | {dm['joint_wasserstein']:.6f} | {comp_scores['joint_wasserstein']:.2f} |")
+            print(f"| 分布距离度量 | Path-Joint MMD (RBF) | 0.000000 | {dm['mmd']:.6f} | {dm['mmd']:.6f} | {comp_scores['mmd']:.2f} |")
+            
         print("=" * 80)
         print()
 

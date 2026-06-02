@@ -200,13 +200,17 @@ class TimeSeriesDataset(Dataset):
     def __len__(self) -> int:
         return len(self.indices)
 
-    def __getitem__(self, idx: int) -> torch.Tensor:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        返回单个样本: (2, 128) — 通道优先。
+        返回单个样本及其起点条件向量: (x, c)
+        - x: (2, seq_len) 通道优先的时序数据
+        - c: (2,) 序列起点的初始条件向量
         """
         start = self.indices[idx]
-        window = self.data[start : start + self.seq_len]  # (128, 2)
-        return window.T  # (2, 128) — 通道 × 序列长度
+        window = self.data[start : start + self.seq_len]  # (seq_len, 2)
+        x = window.T  # (2, seq_len)
+        c = window[0]  # (2,)
+        return x, c
 
     def get_scaler(self) -> TimeSeriesScaler:
         """获取 scaler 实例（用于保存或传递给生成阶段）。"""

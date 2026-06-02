@@ -212,3 +212,86 @@ class DDPMScheduler(nn.Module):
                       f"x range: [{x.min():.3f}, {x.max():.3f}]")
 
         return x
+
+    def ddim_sample_loop(
+        self,
+        model: nn.Module,
+        c: torch.Tensor,
+        shape: tuple = None,
+        x_T: torch.Tensor = None,
+        num_inference_steps: int = 50,
+        guidance_scale: float = 3.0,
+        verbose: bool = True,
+    ) -> torch.Tensor:
+        """
+        确定性 DDIM 快速采样循环 (eta = 0)，结合 Classifier-Free Guidance (CFG)。
+        
+        Args:
+            model:               U-Net 噪声预测模型
+            c:                   条件向量 (B, cond_dim)
+            shape:               生成张量的形状 (B, 2, seq_len)，与 x_T 二选一
+            x_T:                 初始纯噪声张量，若提供则忽略 shape
+            num_inference_steps: 快速采样步数 (例如 50)
+            guidance_scale:      引导权重 w (例如 3.0 ~ 5.0)，w=1.0 为纯有条件，w=0.0 为纯无条件
+            verbose:             是否打印进度
+        Returns:
+            x_0:                 (B, 2, seq_len) — 生成的干净数据
+        """
+        device = next(model.parameters()).device
+
+        if x_T is not None:
+            x = x_T.to(device)
+        else:
+            assert shape is not None, "Must provide shape or x_T"
+            x = torch.randn(shape, device=device)
+
+        B, _, L = x.shape
+        model.eval()
+
+        # 生成均匀跳过的时间步序列，例如：[-1, 19, 39, ..., 999] (当 T=1000, steps=50 时)
+        times = torch.linspace(-1, self.num_timesteps - 1, num_inference_steps + 1, device=device)
+        times = times.round().long()
+
+        for i in reversed(range(1, len(times))):
+            t_curr_val = times[i].item()
+            t_prev_val = times[i - 1].item()
+
+            t_curr = torch.full((B,), t_curr_val, device=device, dtype=torch.long)
+
+            # CFG 提速技巧：单次模型前向同时处理有条件与无条件
+            x_double = torch.cat([x, x], dim=0)
+            t_double = torch.cat([t_curr, t_curr], dim=0)
+            
+            c_null = torch.zeros_like(c)
+            c_double = torch.cat([c, c_null], dim=0)
+
+            with torch.no_grad():
+                eps_double = model(x_double, t_double, c_double)
+
+            eps_cond, eps_uncond = torch.chunk(eps_double, 2, dim=0)
+
+            # CFG 外推公式
+            eps_pred = eps_uncond + guidance_scale * (eps_cond - eps_uncond)
+
+            # 获取 alpha_bar 系数
+            alpha_bar_curr = self.alphas_cumprod[t_curr_val].view(1, 1, 1)
+            if t_prev_val >= 0:
+                alpha_bar_prev = self.alphas_cumprod[t_prev_val].view(1, 1, 1)
+            else:
+                alpha_bar_prev = torch.tensor(1.0, device=device).view(1, 1, 1)
+
+            # 预测干净样本 x_0
+            x0_pred = (x - torch.sqrt(1.0 - alpha_bar_curr) * eps_pred) / torch.sqrt(alpha_bar_curr)
+
+            # 计算指向 x_t 的确定性方向
+            dir_xt = torch.sqrt(1.0 - alpha_bar_prev) * eps_pred
+
+            # 确定性更新得到 x_{t-1} (eta = 0)
+            x = torch.sqrt(alpha_bar_prev) * x0_pred + dir_xt
+
+            if verbose and (i % max(1, num_inference_steps // 10) == 0 or i == len(times) - 1 or i == 1):
+                print(f"  [DDIM Scheduler] Step {num_inference_steps - i + 1:>2d}/{num_inference_steps} "
+                      f"(t_curr={t_curr_val:>3d} -> t_prev={t_prev_val:>3d}) | "
+                      f"x range: [{x.min():.3f}, {x.max():.3f}]")
+
+        return x

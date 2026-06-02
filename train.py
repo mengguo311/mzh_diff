@@ -143,9 +143,14 @@ def train():
         epoch_loss = 0.0
         epoch_start = time.time()
 
-        for batch_idx, x0 in enumerate(dataloader):
+        for batch_idx, (x0, c) in enumerate(dataloader):
             # ── 强制上设备 ──
-            x0 = x0.to(device)  # (B, 2, 128)
+            x0 = x0.to(device)  # (B, 2, seq_len)
+            c = c.to(device)    # (B, cond_dim)
+
+            # ── CFG 条件丢弃 (Null Token 替换) ──
+            mask = (torch.rand(c.shape[0], 1, device=device) < 0.15)
+            c_masked = torch.where(mask, torch.zeros_like(c), c)
 
             # ── 随机采样时间步 ──
             t = torch.randint(
@@ -159,7 +164,7 @@ def train():
             xt = scheduler.q_sample(x0, t, noise)
 
             # ── 预测噪声 ──
-            noise_pred = model(xt, t)
+            noise_pred = model(xt, t, c_masked)
 
             # ── MSE Loss ──
             loss = F.mse_loss(noise_pred, noise)

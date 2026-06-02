@@ -59,14 +59,13 @@ class SinusoidalPositionalEmbedding(nn.Module):
 
 class ResidualBlock1d(nn.Module):
     """
-    带残差连接和时间嵌入注入的 1D 卷积块。
+    带残差连接和条件引导 (adaGN / adaLN) 嵌入注入的 1D 卷积块。
     
     数据流:
-        x (B, C_in, L) + t_emb (B, emb_dim)
+        x (B, C_in, L) + emb (t_emb + c_emb) (B, emb_dim)
         │
-        ├─ Conv1d → GroupNorm → GELU
-        ├─ + time_projection (broadcast add)
-        ├─ Conv1d → GroupNorm → GELU
+        ├─ Conv1d → GroupNorm (affine=False) → Scale/Shift (predicted from emb) → GELU
+        ├─ Conv1d → GroupNorm (affine=False) → Scale/Shift (predicted from emb) → GELU
         │
         └─ skip: Conv1d(1x1) if C_in ≠ C_out else Identity
         
@@ -82,17 +81,21 @@ class ResidualBlock1d(nn.Module):
     ):
         super().__init__()
 
-        # 第一组: Conv → Norm → Act
+        # 第一组: Conv → Norm (非仿射，用于手动注入自适应 Scale & Shift) → Act
         self.conv1 = nn.Conv1d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.norm1 = nn.GroupNorm(num_groups, out_channels)
+        self.norm1 = nn.GroupNorm(num_groups, out_channels, affine=False)
         self.act1 = nn.GELU()
+        
+        # 正则化：Dropout 层防过拟合
+        self.dropout = nn.Dropout(0.1)
 
-        # 时间嵌入投影: (B, emb_dim) → (B, out_channels)
-        self.time_proj = nn.Linear(time_emb_dim, out_channels)
+        # 自适应 Group Norm (adaGN) 投影: (B, emb_dim) -> (B, out_channels * 4)
+        # 一次性预测出两个 Norm 层的 scale1, shift1, scale2, shift2
+        self.adaln_proj = nn.Linear(time_emb_dim, out_channels * 4)
 
         # 第二组: Conv → Norm → Act
         self.conv2 = nn.Conv1d(out_channels, out_channels, kernel_size=3, padding=1)
-        self.norm2 = nn.GroupNorm(num_groups, out_channels)
+        self.norm2 = nn.GroupNorm(num_groups, out_channels, affine=False)
         self.act2 = nn.GELU()
 
         # 残差连接: 若通道数改变则用 1x1 Conv 对齐
@@ -101,23 +104,34 @@ class ResidualBlock1d(nn.Module):
         else:
             self.skip = nn.Identity()
 
-    def forward(self, x: torch.Tensor, t_emb: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, t_emb: torch.Tensor, c_emb: torch.Tensor) -> torch.Tensor:
         """
         Args:
             x:     (B, C_in, L)
             t_emb: (B, emb_dim)
+            c_emb: (B, emb_dim)
         Returns:
             (B, C_out, L)
         """
-        # 第一组卷积
-        h = self.act1(self.norm1(self.conv1(x)))
+        # 条件与时间融合嵌入
+        emb = t_emb + c_emb  # (B, emb_dim)
+        
+        # 预测自适应归一化参数
+        proj = self.adaln_proj(emb)  # (B, out_channels * 4)
+        scale1, shift1, scale2, shift2 = torch.chunk(proj, chunks=4, dim=-1)
+        
+        # 第一层卷积与自适应 GN1
+        h = self.conv1(x)
+        h = self.norm1(h)
+        h = h * (1.0 + scale1.unsqueeze(-1)) + shift1.unsqueeze(-1)
+        h = self.act1(h)
+        h = self.dropout(h)
 
-        # 注入时间嵌入: (B, C_out) → (B, C_out, 1) → broadcast add
-        t = self.time_proj(t_emb).unsqueeze(-1)  # (B, C_out, 1)
-        h = h + t
-
-        # 第二组卷积
-        h = self.act2(self.norm2(self.conv2(h)))
+        # 第二层卷积与自适应 GN2
+        h = self.conv2(h)
+        h = self.norm2(h)
+        h = h * (1.0 + scale2.unsqueeze(-1)) + shift2.unsqueeze(-1)
+        h = self.act2(h)
 
         # 残差连接
         return h + self.skip(x)
@@ -157,15 +171,11 @@ class Upsample1d(nn.Module):
 
 class UNet1d(nn.Module):
     """
-    1D U-Net 去噪网络。
+    1D U-Net 去噪网络，支持 Classifier-Free Guidance (CFG)，并且能够动态适应任意层数的 channel_dims。
     
-    输入: (B, 2, 128) — 带噪的双通道时间序列
-    输出: (B, 2, 128) — 预测的噪声 ε̂
-    
-    Architecture:
-        Encoder:  128 → 64 → 32 → 16
-        Bottleneck: 16 (256 channels, 2x ResBlock)
-        Decoder:  16 → 32 → 64 → 128  (with skip connections)
+    输入: (B, 2, L) — 带噪的双通道时间序列
+    条件: (B, cond_dim) — 初始状态向量
+    输出: (B, 2, L) — 预测的噪声 ε̂
     """
 
     def __init__(
@@ -173,14 +183,16 @@ class UNet1d(nn.Module):
         in_channels: int = config.CHANNELS,
         channel_dims: list = None,
         time_emb_dim: int = config.TIME_EMB_DIM,
+        cond_dim: int = config.CHANNELS,
     ):
         super().__init__()
         
         if channel_dims is None:
-            channel_dims = config.CHANNEL_DIMS  # [64, 128, 256]
+            channel_dims = config.CHANNEL_DIMS  # [64, 128, 256, 512, 1024]
+
+        num_resolutions = len(channel_dims)
 
         # ── 时间嵌入 MLP ──
-        # t (B,) → SinEmb (B, dim) → MLP → (B, dim)
         self.time_mlp = nn.Sequential(
             SinusoidalPositionalEmbedding(time_emb_dim),
             nn.Linear(time_emb_dim, time_emb_dim * 4),
@@ -188,98 +200,85 @@ class UNet1d(nn.Module):
             nn.Linear(time_emb_dim * 4, time_emb_dim),
         )
 
-        # ── 初始卷积: 2 → 64 ──
+        # ── 条件嵌入 MLP ──
+        self.cond_mlp = nn.Sequential(
+            nn.Linear(cond_dim, time_emb_dim),
+            nn.GELU(),
+            nn.Linear(time_emb_dim, time_emb_dim),
+        )
+
+        # ── 初始卷积: 2 → channel_dims[0] ──
         self.init_conv = nn.Conv1d(
             in_channels, channel_dims[0], kernel_size=7, padding=3
         )
 
-        # ── 编码器 (3级) ──
-        # Level 1: 64→64,  128→64
-        self.enc_block1 = ResidualBlock1d(channel_dims[0], channel_dims[0], time_emb_dim)
-        self.down1 = Downsample1d(channel_dims[0])
-
-        # Level 2: 64→128, 64→32
-        self.enc_block2 = ResidualBlock1d(channel_dims[0], channel_dims[1], time_emb_dim)
-        self.down2 = Downsample1d(channel_dims[1])
-
-        # Level 3: 128→256, 32→16
-        self.enc_block3 = ResidualBlock1d(channel_dims[1], channel_dims[2], time_emb_dim)
-        self.down3 = Downsample1d(channel_dims[2])
+        # ── 动态构建编码器 (nn.ModuleList) ──
+        self.enc_blocks = nn.ModuleList()
+        self.downs = nn.ModuleList()
+        for i in range(num_resolutions):
+            in_c = channel_dims[0] if i == 0 else channel_dims[i - 1]
+            out_c = channel_dims[i]
+            self.enc_blocks.append(ResidualBlock1d(in_c, out_c, time_emb_dim))
+            self.downs.append(Downsample1d(out_c))
 
         # ── 瓶颈 (2个 ResBlock) ──
-        self.mid_block1 = ResidualBlock1d(channel_dims[2], channel_dims[2], time_emb_dim)
-        self.mid_block2 = ResidualBlock1d(channel_dims[2], channel_dims[2], time_emb_dim)
+        mid_c = channel_dims[-1]
+        self.mid_block1 = ResidualBlock1d(mid_c, mid_c, time_emb_dim)
+        self.mid_block2 = ResidualBlock1d(mid_c, mid_c, time_emb_dim)
 
-        # ── 解码器 (3级, 与编码器对称) ──
-        # Level 3: upsample 256(16→32), cat skip3(256) → 512, ResBlock → 128
-        self.up3 = Upsample1d(channel_dims[2])
-        self.dec_block3 = ResidualBlock1d(
-            channel_dims[2] * 2, channel_dims[1], time_emb_dim
-        )
+        # ── 动态构建解码器 (nn.ModuleList, 与编码器对称) ──
+        self.ups = nn.ModuleList()
+        self.dec_blocks = nn.ModuleList()
+        for i in reversed(range(num_resolutions)):
+            self.ups.append(Upsample1d(channel_dims[i]))
+            in_c = channel_dims[i] * 2
+            out_c = channel_dims[0] if i == 0 else channel_dims[i - 1]
+            self.dec_blocks.append(ResidualBlock1d(in_c, out_c, time_emb_dim))
 
-        # Level 2: upsample 128(32→64), cat skip2(128) → 256, ResBlock → 64
-        self.up2 = Upsample1d(channel_dims[1])
-        self.dec_block2 = ResidualBlock1d(
-            channel_dims[1] * 2, channel_dims[0], time_emb_dim
-        )
-
-        # Level 1: upsample 64(64→128), cat skip1(64) → 128, ResBlock → 64
-        self.up1 = Upsample1d(channel_dims[0])
-        self.dec_block1 = ResidualBlock1d(
-            channel_dims[0] * 2, channel_dims[0], time_emb_dim
-        )
-
-        # ── 最终输出: 64 → 2 ──
+        # ── 最终输出 ──
         self.final_conv = nn.Sequential(
             nn.GroupNorm(config.NUM_GROUPS, channel_dims[0]),
             nn.GELU(),
             nn.Conv1d(channel_dims[0], in_channels, kernel_size=1),
         )
 
-    def forward(self, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, t: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
         """
         前向传播。
         
         Args:
-            x: (B, 2, 128) — 带噪声的时间序列
-            t: (B,)        — 扩散时间步（整数）
+            x: (B, 2, L) — 带噪声的时间序列
+            t: (B,)      — 扩散时间步
+            c: (B, cond_dim) — 初始状态条件
         Returns:
-            (B, 2, 128)    — 预测的噪声 ε̂
+            (B, 2, L)    — 预测的噪声 ε̂
         """
-        # 时间嵌入
+        # 时间嵌入与条件嵌入
         t_emb = self.time_mlp(t)  # (B, time_emb_dim)
+        c_emb = self.cond_mlp(c)  # (B, time_emb_dim)
 
         # 初始卷积
-        x = self.init_conv(x)     # (B, 64, 128)
+        x = self.init_conv(x)
 
         # ── 编码器 ──
-        h1 = self.enc_block1(x, t_emb)     # (B, 64,  128) ← skip₁
-        x = self.down1(h1)                  # (B, 64,   64)
-
-        h2 = self.enc_block2(x, t_emb)     # (B, 128,  64) ← skip₂
-        x = self.down2(h2)                  # (B, 128,  32)
-
-        h3 = self.enc_block3(x, t_emb)     # (B, 256,  32) ← skip₃
-        x = self.down3(h3)                  # (B, 256,  16)
+        skips = []
+        for block, down in zip(self.enc_blocks, self.downs):
+            x = block(x, t_emb, c_emb)
+            skips.append(x)
+            x = down(x)
 
         # ── 瓶颈 ──
-        x = self.mid_block1(x, t_emb)      # (B, 256,  16)
-        x = self.mid_block2(x, t_emb)      # (B, 256,  16)
+        x = self.mid_block1(x, t_emb, c_emb)
+        x = self.mid_block2(x, t_emb, c_emb)
 
         # ── 解码器 ──
-        x = self.up3(x)                    # (B, 256,  32)
-        x = torch.cat([x, h3], dim=1)      # (B, 512,  32)
-        x = self.dec_block3(x, t_emb)      # (B, 128,  32)
-
-        x = self.up2(x)                    # (B, 128,  64)
-        x = torch.cat([x, h2], dim=1)      # (B, 256,  64)
-        x = self.dec_block2(x, t_emb)      # (B, 64,   64)
-
-        x = self.up1(x)                    # (B, 64,  128)
-        x = torch.cat([x, h1], dim=1)      # (B, 128, 128)
-        x = self.dec_block1(x, t_emb)      # (B, 64,  128)
+        for up, block in zip(self.ups, self.dec_blocks):
+            x = up(x)
+            skip = skips.pop()
+            x = torch.cat([x, skip], dim=1)
+            x = block(x, t_emb, c_emb)
 
         # ── 输出 ──
-        x = self.final_conv(x)             # (B, 2,   128)
+        x = self.final_conv(x)
 
         return x

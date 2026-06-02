@@ -48,8 +48,9 @@ def compute_individual_ddpm_mses(scorer: FinancialScorer, x_normalized: torch.Te
         t = torch.full((n_batch,), t_eval, device=scorer.device, dtype=torch.long)
         noise = torch.randn_like(x0)
         
+        c = x0[:, :, 0]
         xt = scorer.scheduler.q_sample(x0, t, noise)
-        noise_pred = scorer.model(xt, t)
+        noise_pred = scorer.model(xt, t, c)
         
         # 计算每个样本独立的 MSE: (n_batch, 2, L_clean)
         sq_error = (noise_pred - noise) ** 2
