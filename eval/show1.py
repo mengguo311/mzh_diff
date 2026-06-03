@@ -68,9 +68,23 @@ dg_level_cols = sorted(
     key=lambda c: int(c[12:]),
 )
 
+is_diff = False
+if len(sp_level_cols) == 0 or len(dg_level_cols) == 0:
+    sp_level_cols = sorted(
+        [c for c in df_raw.columns if c.startswith("sp500_") and c[6:].isdigit()],
+        key=lambda c: int(c[6:]),
+    )
+    dg_level_cols = sorted(
+        [c for c in df_raw.columns if c.startswith("dgs10_") and c[6:].isdigit()],
+        key=lambda c: int(c[6:]),
+    )
+    if len(sp_level_cols) >= 2 and len(dg_level_cols) >= 2:
+        is_diff = True
+
 if len(sp_level_cols) >= 2 and len(dg_level_cols) >= 2:
     wide_format = True
-    print(f"[Auto-detected] DDPM wide-table LEVELS format")
+    format_name = "DIFF/CHANGES" if is_diff else "LEVELS"
+    print(f"[Auto-detected] DDPM wide-table {format_name} format")
     print(f"  {len(df_raw)} paths × {len(sp_level_cols)} SP500 timesteps + {len(dg_level_cols)} DGS10 timesteps")
 
 if wide_format:
@@ -94,8 +108,12 @@ if wide_format:
     dgs10_all = df_raw[dg_level_cols].values   # (N, seq_len)
 
     print(f"  Selected paths for plotting: {path_indices}")
-    print(f"  SP500 level range: [{sp500_all.min():.2f}, {sp500_all.max():.2f}]")
-    print(f"  DGS10 level range: [{dgs10_all.min():.4f}, {dgs10_all.max():.4f}]")
+    if is_diff:
+        print(f"  SP500 returns range: [{sp500_all.min():.4f}, {sp500_all.max():.4f}]")
+        print(f"  DGS10 diffs range: [{dgs10_all.min():.4f}, {dgs10_all.max():.4f}]")
+    else:
+        print(f"  SP500 level range: [{sp500_all.min():.2f}, {sp500_all.max():.2f}]")
+        print(f"  DGS10 level range: [{dgs10_all.min():.4f}, {dgs10_all.max():.4f}]")
 
     # ── 绘制模拟路径 ──
     print(f"\nGenerating wide-format figures...\n")
@@ -107,8 +125,12 @@ if wide_format:
         ax1.plot(range(seq_len), sp500_all[idx], linewidth=0.8, alpha=0.8,
                  label=f"Path #{idx}")
     ax1.set_xlabel("Trading Day (within window)")
-    ax1.set_ylabel("S&P 500 Index Level")
-    ax1.set_title(f"DDPM Generated S&P 500 Price Paths ({num_paths_to_plot} samples)")
+    if is_diff:
+        ax1.set_ylabel("S&P 500 Daily Return")
+        ax1.set_title(f"DDPM Generated S&P 500 Return Paths ({num_paths_to_plot} samples)")
+    else:
+        ax1.set_ylabel("S&P 500 Index Level")
+        ax1.set_title(f"DDPM Generated S&P 500 Price Paths ({num_paths_to_plot} samples)")
     ax1.legend(fontsize=8)
     ax1.grid(True, alpha=0.3)
 
@@ -116,8 +138,12 @@ if wide_format:
         ax2.plot(range(seq_len), dgs10_all[idx], linewidth=0.8, alpha=0.8,
                  label=f"Path #{idx}")
     ax2.set_xlabel("Trading Day (within window)")
-    ax2.set_ylabel("10Y Treasury Yield Level")
-    ax2.set_title(f"DDPM Generated 10Y Yield Paths ({num_paths_to_plot} samples)")
+    if is_diff:
+        ax2.set_ylabel("10Y Treasury Yield Daily Difference")
+        ax2.set_title(f"DDPM Generated 10Y Yield Difference Paths ({num_paths_to_plot} samples)")
+    else:
+        ax2.set_ylabel("10Y Treasury Yield Level")
+        ax2.set_title(f"DDPM Generated 10Y Yield Paths ({num_paths_to_plot} samples)")
     ax2.legend(fontsize=8)
     ax2.grid(True, alpha=0.3)
 

@@ -268,11 +268,12 @@ class FinancialScorer:
         B = x_normalized.shape[0]
         L = x_normalized.shape[2]
         
-        # 核心逻辑：确保输入序列长度是 8 的倍数，以配合 U-Net 对齐下采样/上采样
-        if L % 8 != 0:
-            L_clean = (L // 8) * 8
+        # 核心逻辑：确保输入序列长度是 2**d 的倍数，以配合 U-Net 对齐下采样/上采样
+        multiple = 2 ** len(self.channel_dims)
+        if L % multiple != 0:
+            L_clean = (L // multiple) * multiple
             x_input = x_normalized[:, :, :L_clean]
-            print(f"  [DDPM MSE] Input sequence length {L} is not a multiple of 8. Slicing to {L_clean} for U-Net compatibility.")
+            print(f"  [DDPM MSE] Input sequence length {L} is not a multiple of {multiple}. Slicing to {L_clean} for U-Net compatibility.")
         else:
             x_input = x_normalized
             

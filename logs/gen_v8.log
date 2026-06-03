@@ -1,0 +1,1175 @@
+nohup: ignoring input
+[Config] CUDA detected: NVIDIA RTX A6000 x2
+[Utils] Random seed set to 42
+============================================================
+  1D-DDPM Generation Pipeline
+============================================================
+  Device:       cuda
+  Checkpoint:   logs/deep_training_v8_b32/checkpoint_final.pt
+  Scaler:       logs/deep_training_v8_b32/scaler.pt
+  Num samples:  5120
+  Batch size:   64
+  Use EMA:      True
+  Output:       output/deep_v8.csv
+============================================================
+
+[Step 1] Loading scaler...
+[Scaler] Parameters loaded from logs/deep_training_v8_b32/scaler.pt
+  sp500: mean=0.000315, std=0.010551
+  DGS10: mean=0.000026, std=0.066899
+  Found run configuration: /home/u00134/src/logs/deep_training_v8_b32/config.json
+  Loaded model config: channel_dims=[64, 128, 256, 512, 1024], time_emb_dim=256, T=1000
+
+[Step 2] Loading model...
+  Loaded EMA weights
+  Trained epoch: 4999
+  U-Net parameters: 43,212,610
+
+[Step 2.5] Loading dataset for conditional generation initial states...
+[Dataset] Loaded 14734 rows from /home/u00134/data/train_sp500_us10y.csv
+[Dataset] 2538 windows (seq_len=2048, stride=5, total_rows=14734)
+  Dataset loaded. Number of available conditions: 2538
+
+[Step 3] Generating 5120 paths...
+
+  --- Batch 1 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.398, 4.766]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.409, 4.760]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.418, 4.755]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.423, 4.749]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.432, 4.751]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.677, 4.715]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.245, 4.629]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.540, 5.011]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.510, 5.169]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.167, 5.238]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.359, 5.120]
+  Generated: 64/5120
+
+  --- Batch 2 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.210, 4.190]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.209, 4.195]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.207, 4.199]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.205, 4.202]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.196, 4.198]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.533, 4.142]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.893, 4.731]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.042, 5.200]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.466, 5.401]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.447, 5.261]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.105, 5.070]
+  Generated: 128/5120
+
+  --- Batch 3 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.498, 4.917]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.505, 4.907]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.510, 4.898]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.514, 4.889]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.520, 4.885]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.814, 4.869]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.383, 4.995]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.782, 5.327]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.869, 5.498]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.550, 5.710]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.049, 5.329]
+  Generated: 192/5120
+
+  --- Batch 4 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.706, 4.743]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.737, 4.737]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.763, 4.730]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.785, 4.723]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.810, 4.781]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.790, 4.773]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.588, 4.443]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.708, 4.914]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.109, 5.274]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.138, 5.214]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.047, 5.030]
+  Generated: 256/5120
+
+  --- Batch 5 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.383, 4.882]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.395, 4.874]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.405, 4.865]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.412, 4.858]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.431, 4.843]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.538, 4.801]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.094, 4.808]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.440, 5.034]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.543, 5.212]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.340, 5.232]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.323, 5.054]
+  Generated: 320/5120
+
+  --- Batch 6 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.345, 4.849]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.401, 4.851]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.452, 4.853]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.496, 4.855]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.544, 4.832]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.577, 4.938]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.763, 5.343]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.217, 5.690]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.469, 5.730]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.365, 5.341]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.033, 5.007]
+  Generated: 384/5120
+
+  --- Batch 7 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.399, 4.444]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.426, 4.459]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.450, 4.471]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.473, 4.480]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.481, 4.474]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.444, 4.418]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.748, 4.442]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.237, 4.966]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.491, 5.271]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.367, 5.244]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.232, 5.016]
+  Generated: 448/5120
+
+  --- Batch 8 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.786, 4.699]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.807, 4.689]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.825, 4.681]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.840, 4.672]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.875, 4.708]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.850, 5.003]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.195, 5.242]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.650, 5.272]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.820, 5.521]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.562, 5.380]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.073, 5.092]
+  Generated: 512/5120
+
+  --- Batch 9 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.720, 4.529]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.702, 4.519]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.684, 4.510]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.669, 4.501]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.662, 4.493]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.613, 4.441]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.760, 4.366]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.269, 4.901]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.520, 5.245]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.396, 5.223]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.046, 5.046]
+  Generated: 576/5120
+
+  --- Batch 10 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.251, 5.154]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.277, 5.170]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.300, 5.184]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.319, 5.197]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.340, 5.214]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.311, 5.212]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.519, 5.251]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.966, 5.112]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.721, 5.249]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.231, 5.294]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.179, 5.052]
+  Generated: 640/5120
+
+  --- Batch 11 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.551, 4.289]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.540, 4.300]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.530, 4.310]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.521, 4.318]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.499, 4.320]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.449, 4.310]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.661, 4.537]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.177, 4.928]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.424, 5.113]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.322, 5.062]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.195, 5.045]
+  Generated: 704/5120
+
+  --- Batch 12 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.332, 4.403]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.365, 4.406]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.395, 4.409]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.420, 4.409]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.456, 4.416]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.464, 4.366]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.347, 4.238]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.990, 4.545]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.198, 4.941]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.217, 5.092]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.094, 5.005]
+  Generated: 768/5120
+
+  --- Batch 13 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.292, 4.566]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.318, 4.558]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.341, 4.551]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.359, 4.543]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.382, 4.549]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.352, 4.524]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.967, 4.532]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.339, 5.097]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.475, 5.404]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.341, 5.465]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.049, 5.416]
+  Generated: 832/5120
+
+  --- Batch 14 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.748, 4.762]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.753, 4.777]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.756, 4.790]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.760, 4.801]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.748, 4.793]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.680, 4.750]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.637, 4.672]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.172, 4.831]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.467, 5.222]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.374, 5.233]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.056, 5.035]
+  Generated: 896/5120
+
+  --- Batch 15 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.547, 4.930]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.550, 4.940]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.551, 4.948]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.552, 4.955]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.531, 4.957]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.928, 4.847]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.412, 5.033]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.700, 5.500]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.928, 5.671]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.472, 5.427]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.115, 5.115]
+  Generated: 960/5120
+
+  --- Batch 16 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.403, 4.469]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.393, 4.481]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.411, 4.492]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.431, 4.501]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.451, 4.497]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.470, 4.466]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.416, 4.344]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.755, 4.876]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-4.949, 5.247]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.175, 5.261]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-4.997, 5.124]
+  Generated: 1024/5120
+
+  --- Batch 17 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.382, 4.494]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.375, 4.477]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.368, 4.462]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.362, 4.462]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.360, 4.482]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.203, 4.500]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.817, 4.964]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.279, 5.436]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.514, 5.710]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.415, 5.525]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.034, 5.120]
+  Generated: 1088/5120
+
+  --- Batch 18 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.987, 4.744]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.009, 4.749]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.028, 4.753]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.044, 4.756]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.077, 4.801]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.064, 4.812]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.908, 4.544]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.090, 4.629]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.332, 5.024]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.254, 5.159]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.127, 5.065]
+  Generated: 1152/5120
+
+  --- Batch 19 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.275, 4.566]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.296, 4.559]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.315, 4.552]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.330, 4.545]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.353, 4.551]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.529, 4.488]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.147, 4.695]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.593, 5.187]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.733, 5.540]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.453, 5.356]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.166, 5.082]
+  Generated: 1216/5120
+
+  --- Batch 20 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.570, 4.642]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.588, 4.669]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.603, 4.692]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.615, 4.713]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.640, 4.774]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.621, 4.795]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.460, 4.749]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.184, 4.919]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.797, 5.059]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.884, 5.017]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.477, 5.111]
+  Generated: 1280/5120
+
+  --- Batch 21 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.738, 4.276]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.756, 4.286]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.772, 4.299]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.787, 4.311]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.867, 4.305]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.949, 4.487]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.578, 4.800]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.941, 4.884]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.334, 5.194]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.312, 5.206]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.124, 5.060]
+  Generated: 1344/5120
+
+  --- Batch 22 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.851, 4.445]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.889, 4.463]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.921, 4.478]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.949, 4.491]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.975, 4.555]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.904, 5.108]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.752, 5.554]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.185, 5.682]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.256, 5.615]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.240, 5.422]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.092, 5.096]
+  Generated: 1408/5120
+
+  --- Batch 23 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.631, 4.453]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.657, 4.466]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.678, 4.478]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.696, 4.488]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.722, 4.533]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.733, 4.510]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.852, 4.441]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.089, 4.808]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.278, 5.193]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.216, 5.204]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.298, 5.022]
+  Generated: 1472/5120
+
+  --- Batch 24 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.502, 4.420]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.526, 4.431]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.547, 4.440]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.564, 4.448]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.581, 4.472]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.657, 4.386]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.182, 4.357]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.572, 4.807]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.666, 5.105]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.399, 5.098]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.413, 5.034]
+  Generated: 1536/5120
+
+  --- Batch 25 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.634, 5.169]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.649, 5.205]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.662, 5.237]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.672, 5.264]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.689, 5.263]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.639, 5.195]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.506, 5.051]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.820, 5.417]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.075, 5.573]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.125, 5.349]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.013, 5.074]
+  Generated: 1600/5120
+
+  --- Batch 26 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.568, 4.618]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.601, 4.647]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.629, 4.672]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.653, 4.694]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.703, 4.705]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.683, 4.646]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.762, 4.494]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.131, 4.764]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.420, 4.939]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.340, 5.002]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.038, 5.031]
+  Generated: 1664/5120
+
+  --- Batch 27 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.449, 4.636]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.475, 4.631]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.497, 4.626]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.515, 4.621]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.530, 4.630]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.463, 4.588]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.802, 4.297]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.017, 4.675]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.179, 5.004]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.124, 5.086]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.045, 5.025]
+  Generated: 1728/5120
+
+  --- Batch 28 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.761, 4.699]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.772, 4.706]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.781, 4.733]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.787, 4.757]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.788, 4.815]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.729, 4.871]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.503, 4.773]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.885, 5.039]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.293, 5.269]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.299, 5.180]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.081, 5.059]
+  Generated: 1792/5120
+
+  --- Batch 29 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.381, 4.639]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.382, 4.653]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.383, 4.664]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.385, 4.674]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.393, 4.676]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.545, 4.749]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.969, 5.107]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.220, 5.187]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.533, 5.215]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-6.142, 5.182]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-6.377, 5.039]
+  Generated: 1856/5120
+
+  --- Batch 30 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.682, 4.308]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.710, 4.333]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.736, 4.356]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.758, 4.374]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.787, 4.386]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.828, 4.343]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.411, 4.641]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-6.747, 5.067]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-7.479, 5.236]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-7.229, 5.141]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.710, 5.022]
+  Generated: 1920/5120
+
+  --- Batch 31 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.283, 4.836]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.299, 4.850]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.312, 4.862]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.323, 4.873]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.349, 4.865]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.701, 5.005]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.177, 4.942]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.544, 5.070]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.595, 5.218]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.383, 5.238]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.236, 5.163]
+  Generated: 1984/5120
+
+  --- Batch 32 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.323, 4.377]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.340, 4.375]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.355, 4.373]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.367, 4.369]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.388, 4.361]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.382, 4.261]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.565, 4.489]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.127, 4.781]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.366, 4.960]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.301, 5.035]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.113, 5.060]
+  Generated: 2048/5120
+
+  --- Batch 33 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.561, 4.750]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.574, 4.772]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.586, 4.791]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.596, 4.808]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.611, 4.809]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.635, 4.767]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.167, 4.626]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.397, 4.994]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.687, 5.223]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-6.060, 5.193]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-6.060, 4.997]
+  Generated: 2112/5120
+
+  --- Batch 34 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.282, 4.219]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.282, 4.232]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.281, 4.243]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.280, 4.252]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.290, 4.255]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.265, 4.219]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.747, 5.586]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.184, 6.401]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.465, 6.822]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.388, 6.681]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.167, 6.009]
+  Generated: 2176/5120
+
+  --- Batch 35 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.979, 4.757]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.028, 4.765]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.074, 4.772]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.114, 4.777]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.144, 4.800]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.053, 4.958]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.842, 5.205]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.301, 5.233]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.421, 4.873]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.248, 5.079]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.205, 5.032]
+  Generated: 2240/5120
+
+  --- Batch 36 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.444, 4.252]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.449, 4.249]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.452, 4.253]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.454, 4.262]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.443, 4.318]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.436, 4.599]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.760, 4.991]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.102, 5.501]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.229, 5.702]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.308, 5.472]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.130, 5.052]
+  Generated: 2304/5120
+
+  --- Batch 37 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.446, 4.945]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.454, 4.917]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.460, 4.893]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.465, 4.871]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.525, 4.853]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.501, 4.796]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.379, 5.132]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.954, 5.344]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.300, 5.569]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.301, 5.436]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.043, 5.047]
+  Generated: 2368/5120
+
+  --- Batch 38 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.001, 4.804]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.052, 4.791]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.098, 4.778]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.138, 4.766]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.209, 4.761]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.204, 4.696]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.977, 4.637]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.113, 4.622]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.155, 5.013]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.175, 5.090]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.129, 5.014]
+  Generated: 2432/5120
+
+  --- Batch 39 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.224, 4.698]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.210, 4.717]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.196, 4.734]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.185, 4.750]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.192, 4.765]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.152, 4.756]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.373, 4.709]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.797, 4.574]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.887, 5.021]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.563, 5.124]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.031, 5.010]
+  Generated: 2496/5120
+
+  --- Batch 40 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.643, 5.085]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.638, 5.075]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.632, 5.066]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.627, 5.057]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.646, 5.049]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.615, 4.995]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.473, 4.999]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.001, 4.761]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.314, 5.007]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.290, 5.117]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.019, 5.018]
+  Generated: 2560/5120
+
+  --- Batch 41 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.500, 4.566]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.507, 4.561]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.512, 4.557]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.516, 4.552]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.470, 4.503]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.463, 4.659]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.571, 4.568]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.078, 4.980]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.410, 5.266]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.367, 5.221]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.012, 5.002]
+  Generated: 2624/5120
+
+  --- Batch 42 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.612, 4.779]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.631, 4.794]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.647, 4.806]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.660, 4.817]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.673, 4.829]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.636, 4.843]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.485, 4.893]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.063, 5.357]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.320, 5.545]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.660, 5.350]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.608, 5.013]
+  Generated: 2688/5120
+
+  --- Batch 43 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.409, 4.460]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.406, 4.448]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.401, 4.438]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.404, 4.428]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.488, 4.424]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.021, 4.408]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.532, 4.750]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.735, 4.963]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.683, 4.919]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.324, 5.103]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.095, 5.034]
+  Generated: 2752/5120
+
+  --- Batch 44 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.113, 4.779]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.134, 4.787]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.151, 4.793]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.165, 4.798]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.184, 4.783]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.138, 4.729]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.952, 4.531]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.054, 5.323]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.328, 5.407]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.295, 5.122]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.102, 5.043]
+  Generated: 2816/5120
+
+  --- Batch 45 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.964, 4.510]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.974, 4.494]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.981, 4.480]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.987, 4.467]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.097, 4.465]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.404, 4.405]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.594, 4.393]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.483, 4.798]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.958, 5.102]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.816, 5.131]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.080, 5.024]
+  Generated: 2880/5120
+
+  --- Batch 46 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.865, 4.343]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.858, 4.344]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.851, 4.345]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.846, 4.345]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.849, 4.345]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.763, 4.344]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.140, 4.333]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.285, 4.772]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.201, 5.033]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.891, 5.097]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-6.090, 5.070]
+  Generated: 2944/5120
+
+  --- Batch 47 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.488, 4.964]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.482, 4.979]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.476, 4.990]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.471, 5.001]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.467, 5.056]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.409, 5.147]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.200, 5.158]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.434, 4.900]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-4.929, 5.036]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.112, 5.114]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.063, 5.057]
+  Generated: 3008/5120
+
+  --- Batch 48 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.289, 4.697]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.330, 4.699]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.365, 4.701]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.394, 4.702]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.431, 4.728]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.399, 4.863]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.205, 5.495]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.475, 5.956]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.608, 6.025]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.365, 5.601]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.132, 5.098]
+  Generated: 3072/5120
+
+  --- Batch 49 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.934, 4.845]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.966, 4.845]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.994, 4.845]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.018, 4.844]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.045, 4.864]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.016, 4.920]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.749, 4.964]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.182, 5.311]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.493, 5.367]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.407, 5.275]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.178, 5.037]
+  Generated: 3136/5120
+
+  --- Batch 50 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.218, 4.655]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.207, 4.640]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.217, 4.626]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.228, 4.613]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.236, 4.608]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.181, 4.563]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.472, 4.360]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.016, 4.753]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.346, 5.134]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.544, 5.232]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.338, 5.079]
+  Generated: 3200/5120
+
+  --- Batch 51 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.676, 4.398]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.677, 4.399]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.680, 4.413]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.683, 4.425]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.698, 4.445]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.768, 4.430]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.065, 4.404]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.427, 4.915]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.629, 5.362]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.397, 5.364]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.117, 5.069]
+  Generated: 3264/5120
+
+  --- Batch 52 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.526, 4.173]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.532, 4.184]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.536, 4.193]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.541, 4.205]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.526, 4.219]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.490, 4.241]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.847, 4.817]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.321, 5.186]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.604, 5.394]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.449, 5.650]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.305, 5.093]
+  Generated: 3328/5120
+
+  --- Batch 53 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.662, 4.582]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.659, 4.592]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.653, 4.600]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.651, 4.607]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.646, 4.613]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.690, 4.552]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.882, 4.418]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.249, 5.004]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-6.295, 5.082]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-7.066, 5.070]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-7.081, 5.052]
+  Generated: 3392/5120
+
+  --- Batch 54 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.413, 4.397]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.389, 4.409]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.368, 4.420]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.351, 4.429]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.309, 4.432]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.260, 4.469]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.773, 4.702]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.272, 4.843]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.492, 5.222]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.435, 5.288]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.154, 5.071]
+  Generated: 3456/5120
+
+  --- Batch 55 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.732, 4.486]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.725, 4.473]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.717, 4.460]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.709, 4.448]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.720, 4.447]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.670, 4.353]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.925, 4.723]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.371, 5.034]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.521, 5.173]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.322, 5.149]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.063, 5.049]
+  Generated: 3520/5120
+
+  --- Batch 56 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.489, 4.819]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.491, 4.816]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.491, 4.813]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.503, 4.810]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.518, 4.805]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.599, 4.739]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.591, 4.818]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.044, 5.298]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.504, 5.481]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.365, 5.287]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.152, 4.998]
+  Generated: 3584/5120
+
+  --- Batch 57 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.808, 4.272]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.801, 4.252]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.792, 4.254]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.786, 4.258]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.793, 4.269]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.749, 4.276]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.994, 4.597]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.271, 4.951]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.422, 5.285]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.306, 5.251]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.184, 5.072]
+  Generated: 3648/5120
+
+  --- Batch 58 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.581, 4.205]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.578, 4.218]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.572, 4.230]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.570, 4.241]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.591, 4.250]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.594, 4.232]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.014, 4.604]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.464, 4.993]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.651, 5.327]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.424, 5.341]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.037, 5.037]
+  Generated: 3712/5120
+
+  --- Batch 59 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.346, 4.372]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.342, 4.382]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.338, 4.389]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.335, 4.396]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.358, 4.404]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.302, 4.361]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.505, 4.552]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.739, 4.756]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.162, 5.024]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.341, 5.074]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.049, 5.048]
+  Generated: 3776/5120
+
+  --- Batch 60 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.719, 4.429]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.726, 4.441]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.732, 4.453]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.736, 4.462]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.743, 4.505]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.594, 4.555]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-6.546, 4.402]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-6.831, 4.743]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-6.630, 5.173]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.814, 5.181]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.063, 5.068]
+  Generated: 3840/5120
+
+  --- Batch 61 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.896, 4.616]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.897, 4.611]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.897, 4.606]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.896, 4.602]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.935, 4.614]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.940, 4.557]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.873, 4.514]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.263, 4.920]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.408, 5.207]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.328, 5.199]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.153, 5.039]
+  Generated: 3904/5120
+
+  --- Batch 62 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.403, 4.704]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.366, 4.677]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.334, 4.653]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.311, 4.632]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.330, 4.601]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.298, 4.520]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.380, 4.728]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.932, 5.094]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.542, 5.210]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.714, 5.138]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.182, 5.084]
+  Generated: 3968/5120
+
+  --- Batch 63 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.295, 4.568]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.309, 4.587]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.321, 4.604]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.330, 4.619]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.335, 4.636]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.211, 4.627]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.194, 4.789]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.826, 5.212]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.279, 5.324]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.336, 5.185]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.199, 5.051]
+  Generated: 4032/5120
+
+  --- Batch 64 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.502, 4.874]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.539, 4.892]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.573, 4.908]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.602, 4.922]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.638, 4.918]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.547, 4.891]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.833, 5.025]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.145, 5.177]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.182, 5.004]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.214, 5.160]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.087, 5.165]
+  Generated: 4096/5120
+
+  --- Batch 65 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.005, 4.571]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.976, 4.566]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.949, 4.560]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.928, 4.555]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.944, 4.565]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.943, 4.795]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.899, 5.372]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.968, 5.803]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.314, 5.921]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.316, 5.601]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.103, 5.104]
+  Generated: 4160/5120
+
+  --- Batch 66 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.564, 4.188]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.542, 4.205]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.533, 4.219]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.530, 4.232]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.497, 4.240]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.486, 4.168]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.884, 4.432]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.355, 4.872]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.517, 5.108]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.279, 5.080]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.025, 5.038]
+  Generated: 4224/5120
+
+  --- Batch 67 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.189, 5.193]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.196, 5.231]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.217, 5.265]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.236, 5.296]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.266, 5.344]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.259, 5.396]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.481, 5.528]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.010, 5.619]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.302, 5.464]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.281, 5.136]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.012, 5.066]
+  Generated: 4288/5120
+
+  --- Batch 68 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.668, 4.651]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.659, 4.658]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.650, 4.664]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.642, 4.668]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.641, 4.696]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.629, 4.673]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.719, 4.781]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.167, 5.241]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.445, 5.468]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.339, 5.175]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.423, 5.043]
+  Generated: 4352/5120
+
+  --- Batch 69 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.203, 4.345]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.223, 4.337]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.241, 4.330]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.256, 4.324]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.274, 4.340]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.749, 4.554]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.342, 5.113]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.856, 5.421]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-6.050, 5.477]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.758, 5.265]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.122, 5.077]
+  Generated: 4416/5120
+
+  --- Batch 70 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.208, 4.434]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.226, 4.437]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.241, 4.440]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.254, 4.441]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.283, 4.445]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.644, 4.583]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.300, 5.157]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.638, 5.273]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.782, 5.247]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.550, 5.185]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.111, 5.052]
+  Generated: 4480/5120
+
+  --- Batch 71 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.591, 4.316]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.585, 4.320]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.578, 4.325]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.572, 4.326]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.561, 4.440]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.518, 4.945]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.294, 5.258]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.547, 5.667]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.047, 6.224]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.195, 6.287]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.372, 6.144]
+  Generated: 4544/5120
+
+  --- Batch 72 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-5.064, 4.712]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-5.063, 4.713]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-5.061, 4.713]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-5.059, 4.713]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.083, 4.727]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.976, 4.715]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.784, 4.853]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.417, 5.425]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.750, 5.874]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.686, 5.742]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.269, 5.808]
+  Generated: 4608/5120
+
+  --- Batch 73 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.515, 4.225]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.531, 4.206]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.545, 4.191]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.556, 4.177]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.575, 4.164]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-6.103, 4.124]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-6.704, 4.418]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-6.488, 4.814]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.553, 4.997]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.434, 5.186]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.415, 5.052]
+  Generated: 4672/5120
+
+  --- Batch 74 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.471, 4.811]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.493, 4.806]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.511, 4.801]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.529, 4.797]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.552, 4.825]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.506, 4.847]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.426, 4.835]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.630, 5.077]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.077, 5.212]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.232, 5.167]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.252, 5.065]
+  Generated: 4736/5120
+
+  --- Batch 75 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.482, 4.526]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.502, 4.528]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.519, 4.528]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.532, 4.529]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.550, 4.558]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.508, 4.522]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.527, 4.378]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.594, 4.610]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.011, 4.974]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.151, 5.158]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.333, 5.113]
+  Generated: 4800/5120
+
+  --- Batch 76 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.915, 4.452]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.899, 4.440]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.882, 4.430]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.869, 4.419]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.863, 4.413]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.820, 4.364]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.508, 4.766]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-4.714, 5.376]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.130, 5.228]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.194, 5.112]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.062, 5.040]
+  Generated: 4864/5120
+
+  --- Batch 77 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.799, 4.424]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.829, 4.439]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.856, 4.451]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.879, 4.461]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-5.020, 4.465]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-5.236, 4.423]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.357, 4.962]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.396, 5.262]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.577, 5.355]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.391, 5.267]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.075, 5.149]
+  Generated: 4928/5120
+
+  --- Batch 78 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.443, 4.547]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.435, 4.556]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.428, 4.563]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.421, 4.569]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.437, 4.594]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.411, 4.711]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-5.584, 4.933]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-6.261, 4.922]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-6.016, 5.243]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.261, 5.258]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.076, 5.047]
+  Generated: 4992/5120
+
+  --- Batch 79 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.155, 4.446]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.170, 4.454]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.184, 4.460]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.194, 4.466]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.204, 4.457]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.178, 4.418]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.732, 4.497]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.130, 4.781]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.369, 5.127]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.347, 5.240]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.101, 5.136]
+  Generated: 5056/5120
+
+  --- Batch 80 (64 samples) ---
+  [DDIM Scheduler] Step  1/50 (t_curr=999 -> t_prev=979) | x range: [-4.637, 4.420]
+  [DDIM Scheduler] Step  6/50 (t_curr=899 -> t_prev=879) | x range: [-4.674, 4.422]
+  [DDIM Scheduler] Step 11/50 (t_curr=799 -> t_prev=779) | x range: [-4.707, 4.422]
+  [DDIM Scheduler] Step 16/50 (t_curr=699 -> t_prev=679) | x range: [-4.734, 4.422]
+  [DDIM Scheduler] Step 21/50 (t_curr=599 -> t_prev=579) | x range: [-4.762, 4.405]
+  [DDIM Scheduler] Step 26/50 (t_curr=499 -> t_prev=479) | x range: [-4.712, 4.505]
+  [DDIM Scheduler] Step 31/50 (t_curr=399 -> t_prev=379) | x range: [-4.889, 6.015]
+  [DDIM Scheduler] Step 36/50 (t_curr=299 -> t_prev=279) | x range: [-5.057, 7.137]
+  [DDIM Scheduler] Step 41/50 (t_curr=199 -> t_prev=179) | x range: [-5.119, 7.864]
+  [DDIM Scheduler] Step 46/50 (t_curr= 99 -> t_prev= 79) | x range: [-5.210, 7.813]
+  [DDIM Scheduler] Step 50/50 (t_curr= 19 -> t_prev= -1) | x range: [-5.029, 6.880]
+  Generated: 5120/5120
+
+[Step 4] Saving to CSV...
+
+============================================================
+  Generation Complete!
+============================================================
+  Output:         output/deep_v8.csv
+  Shape:          (5120, 4096)
+  Total time:     238.7s
+  Time per sample: 46.63ms
+
+  ── SP500 日收益率统计 ──
+    Mean:  -0.000138
+    Std:   0.007356
+    Min:   -0.056370
+    Max:   0.072902
+
+  ── DGS10 日差分统计 ──
+    Mean:  -0.000300
+    Std:   0.047075
+    Min:   -0.473703
+    Max:   0.411071

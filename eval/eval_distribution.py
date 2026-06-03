@@ -33,9 +33,10 @@ def compute_individual_ddpm_mses(scorer: FinancialScorer, x_normalized: torch.Te
     B = x_normalized.shape[0]
     L = x_normalized.shape[2]
     
-    # 核心逻辑：确保输入序列长度是 8 的倍数，以配合 U-Net
-    if L % 8 != 0:
-        L_clean = (L // 8) * 8
+    # 核心逻辑：确保输入序列长度是 2**d 的倍数，以配合 U-Net
+    multiple = 2 ** len(scorer.channel_dims)
+    if L % multiple != 0:
+        L_clean = (L // multiple) * multiple
         x_input = x_normalized[:, :, :L_clean]
     else:
         x_input = x_normalized
