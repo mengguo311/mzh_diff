@@ -1,0 +1,48 @@
+============================================================
+  Score Distribution Evaluator  [Backend: PCA]
+============================================================
+
+============================================================
+ 1. 加载数据 (PCA-Wasserstein 模式)
+============================================================
+  [Real Data] Loaded 270 windows of length 1260 (stride=50)
+
+============================================================
+ 2. 提取 548 维特征 → Real 数据
+============================================================
+
+============================================================
+ 3. PCA 正交化 (fit on Real)
+============================================================
+
+============================================================
+ 4. 计算 Real 路径个体分数
+============================================================
+  [Real] Per-path scoring complete: 270 paths in 0.0s
+
+============================================================
+ 5. 加载并评估生成数据 (/home/u00134/src/output/deep_v8.csv)
+============================================================
+Traceback (most recent call last):
+  File "/home/u00134/src/eval/eval_distribution.py", line 425, in <module>
+    main()
+  File "/home/u00134/src/eval/eval_distribution.py", line 410, in main
+    real_scores, fake_scores = run_pca_evaluation(args)
+  File "/home/u00134/src/eval/eval_distribution.py", line 207, in run_pca_evaluation
+    fake_data = load_fake_data(args.fake, seq_len=seq_len)
+  File "/home/u00134/src/eval/score2/advanced_scorer.py", line 179, in load_fake_data
+    df = pd.read_csv(csv_path)
+  File "/home/u00134/bin/miniconda3/envs/ts_diffusion/lib/python3.10/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/home/u00134/bin/miniconda3/envs/ts_diffusion/lib/python3.10/site-packages/pandas/io/parsers/readers.py", line 626, in _read
+    return parser.read(nrows)
+  File "/home/u00134/bin/miniconda3/envs/ts_diffusion/lib/python3.10/site-packages/pandas/io/parsers/readers.py", line 1923, in read
+    ) = self._engine.read(  # type: ignore[attr-defined]
+  File "/home/u00134/bin/miniconda3/envs/ts_diffusion/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py", line 234, in read
+    chunks = self._reader.read_low_memory(nrows)
+  File "pandas/_libs/parsers.pyx", line 838, in pandas._libs.parsers.TextReader.read_low_memory
+  File "pandas/_libs/parsers.pyx", line 905, in pandas._libs.parsers.TextReader._read_rows
+  File "pandas/_libs/parsers.pyx", line 874, in pandas._libs.parsers.TextReader._tokenize_rows
+  File "pandas/_libs/parsers.pyx", line 891, in pandas._libs.parsers.TextReader._check_tokenize_status
+  File "pandas/_libs/parsers.pyx", line 2061, in pandas._libs.parsers.raise_parser_error
+pandas.errors.ParserError: Error tokenizing data. C error: Calling read(nbytes) on source failed. Try engine='python'.
