@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-score.py — 双资产模拟生成数据体检报告打分系统
-使用训练好的一维扩散模型（1D-DDPM）结合量化金融 Stylized Facts（典型事实）对第三方生成的数据进行多维度综合评分。
+score.py — 双资产模拟生成数据体检报告打分系统 v2
+使用训练好的一维扩散模型（1D-DDPM）结合量化金融 Stylized Facts（典型事实）
+对第三方生成的数据进行多维度综合评分。
+
+v2 修复:
+  - DDPM MSE 改用分位数归一化 (Percentile Scoring)，修复因量级失配导致的 ≈ 0 分问题
+  - Stylized Facts 的衰减尺度 σ 从硬编码改为自适应（从真实数据窗口统计量 std 计算）
+  - 去除高维空间不稳定的 MMD 指标
+  - 支持逐路径 (per-path) 评分
 """
 
 import os
@@ -25,26 +32,148 @@ import config
 from dataset import TimeSeriesScaler
 from unet1d import UNet1d
 from scheduler import DDPMScheduler
-from eval.metrics import calculate_1d_wasserstein, calculate_mmd
+from eval.metrics import calculate_1d_wasserstein
 
+
+# ============================================================
+#  Stylized Facts 计算 (单条路径级别)
+# ============================================================
+
+def compute_path_stats(sp: np.ndarray, dg: np.ndarray, acf_max_lag: int = 10) -> dict:
+    """
+    对单条路径计算全部 Stylized Facts 指标。
+
+    Args:
+        sp: (L,) S&P 500 日收益率序列
+        dg: (L,) DGS10 日差分序列
+        acf_max_lag: ACF 最大滞后阶数
+    Returns:
+        dict: 各指标标量值
+    """
+    # 1. Moments
+    sp_skew = float(skew(sp))
+    sp_kurt = float(kurtosis(sp))  # excess kurtosis
+    dg_skew = float(skew(dg))
+    dg_kurt = float(kurtosis(dg))
+
+    # 安全截断 (防止 NaN / Inf)
+    sp_skew = np.clip(sp_skew, -20, 20) if np.isfinite(sp_skew) else 0.0
+    sp_kurt = np.clip(sp_kurt, -20, 200) if np.isfinite(sp_kurt) else 0.0
+    dg_skew = np.clip(dg_skew, -20, 20) if np.isfinite(dg_skew) else 0.0
+    dg_kurt = np.clip(dg_kurt, -20, 200) if np.isfinite(dg_kurt) else 0.0
+
+    # 2. Volatility Clustering — |r| 的 ACF (Lag 1 ~ max_lag)
+    abs_sp = np.abs(sp)
+    abs_dg = np.abs(dg)
+    sp_acf = _compute_acf(abs_sp, acf_max_lag)
+    dg_acf = _compute_acf(abs_dg, acf_max_lag)
+
+    # 3. Unconditional Correlation
+    if np.std(sp) > 1e-10 and np.std(dg) > 1e-10:
+        uncond_corr = float(np.corrcoef(sp, dg)[0, 1])
+        if not np.isfinite(uncond_corr):
+            uncond_corr = 0.0
+    else:
+        uncond_corr = 0.0
+
+    # 4. Tail Correlation (SP500 < mean - 1.5 * std)
+    mu_sp = np.mean(sp)
+    std_sp = np.std(sp)
+    threshold = mu_sp - 1.5 * (std_sp if std_sp > 1e-8 else 1e-8)
+    mask = sp < threshold
+    if np.sum(mask) >= 5:
+        tc = np.corrcoef(sp[mask], dg[mask])[0, 1]
+        tail_corr = float(tc) if np.isfinite(tc) else 0.0
+    else:
+        tail_corr = 0.0
+
+    return {
+        "sp_skew": sp_skew,
+        "sp_kurt": sp_kurt,
+        "dg_skew": dg_skew,
+        "dg_kurt": dg_kurt,
+        "sp_acf": sp_acf,
+        "dg_acf": dg_acf,
+        "uncond_corr": uncond_corr,
+        "tail_corr": tail_corr,
+    }
+
+
+def _compute_acf(series: np.ndarray, max_lag: int) -> np.ndarray:
+    """计算单条序列的 ACF (Lag 1 ~ max_lag)。"""
+    n = len(series)
+    mean = np.mean(series)
+    var = np.var(series)
+    acf = np.zeros(max_lag)
+    if var < 1e-12:
+        return acf
+    for lag in range(1, max_lag + 1):
+        if n > lag:
+            cov = np.mean((series[lag:] - mean) * (series[:-lag] - mean))
+            acf[lag - 1] = cov / var
+    return acf
+
+
+def compute_batch_stats(x_changes: np.ndarray, acf_max_lag: int = 10) -> list[dict]:
+    """
+    对一个 batch 的路径逐条计算 Stylized Facts。
+
+    Args:
+        x_changes: (Batch, 2, L) 日变化量数组
+    Returns:
+        list[dict]: 每条路径的指标字典
+    """
+    B = x_changes.shape[0]
+    results = []
+    for i in range(B):
+        sp = x_changes[i, 0]
+        dg = x_changes[i, 1]
+        results.append(compute_path_stats(sp, dg, acf_max_lag))
+    return results
+
+
+# ============================================================
+#  FinancialScorer
+# ============================================================
 
 class FinancialScorer:
     """
-    1D-DDPM 基于隐式物理特征与量化金融典型事实的评估与打分系统。
+    1D-DDPM 基于隐式物理特征与量化金融典型事实的评估与打分系统 v2。
+
+    评分流程:
+        1. calibrate_from_real(): 加载真实数据，对每个滑动窗口计算指标 + DDPM MSE，
+           得到各指标的 (baseline_mean, baseline_std) 作为自适应 σ。
+        2. score_fake(): 加载假数据，计算同样的指标 + DDPM MSE，
+           使用分位数归一化 (DDPM MSE) + 自适应指数衰减 (Stylized Facts) 评分。
     """
+
+    # 权重配置
+    WEIGHTS = {
+        "ddpm_mse":     0.20,
+        "sp_skew":      0.075,
+        "sp_kurt":      0.075,
+        "dg_skew":      0.05,
+        "dg_kurt":      0.05,
+        "sp_acf":       0.10,
+        "dg_acf":       0.10,
+        "uncond_corr":  0.15,
+        "tail_corr":    0.10,
+        "wasserstein":  0.10,
+    }
+
     def __init__(self, checkpoint_path: str, scaler_path: str, device: str = None):
         # 1. 确定运行设备
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.device = torch.device(device)
-            
+
         print(f"[FinancialScorer] Using device: {self.device}")
-        
+
         # 2. 动态读取并应用训练配置
         self.checkpoint_dir = os.path.dirname(os.path.abspath(checkpoint_path))
         config_json_path = os.path.join(self.checkpoint_dir, "config.json")
-        
+
         # 备份默认值
         self.seq_len = config.SEQ_LEN
         self.channels = config.CHANNELS
@@ -53,7 +182,7 @@ class FinancialScorer:
         self.T = config.T
         self.beta_start = config.BETA_START
         self.beta_end = config.BETA_END
-        
+
         if os.path.exists(config_json_path):
             print(f"[FinancialScorer] Loading run configuration from: {config_json_path}")
             try:
@@ -66,8 +195,8 @@ class FinancialScorer:
                 self.T = run_config.get("T", self.T)
                 self.beta_start = run_config.get("beta_start", self.beta_start)
                 self.beta_end = run_config.get("beta_end", self.beta_end)
-                
-                # 同步更新全局 config 模块中的值，以便其他内部层匹配
+
+                # 同步更新全局 config 模块中的值
                 config.SEQ_LEN = self.seq_len
                 config.CHANNELS = self.channels
                 config.CHANNEL_DIMS = self.channel_dims
@@ -75,11 +204,11 @@ class FinancialScorer:
                 config.T = self.T
                 config.BETA_START = self.beta_start
                 config.BETA_END = self.beta_end
-                
-                print(f"  Applied Model Config: seq_len={self.seq_len}, channel_dims={self.channel_dims}, T={self.T}")
+
+                print(f"  Applied: seq_len={self.seq_len}, channel_dims={self.channel_dims}, T={self.T}")
             except Exception as e:
-                print(f"  [Warning] Failed to load config.json, using default values. Error: {e}")
-                
+                print(f"  [Warning] Failed to load config.json: {e}")
+
         # 3. 初始化并加载 1D U-Net 模型
         print("[FinancialScorer] Loading U-Net model...")
         self.model = UNet1d(
@@ -87,9 +216,9 @@ class FinancialScorer:
             channel_dims=self.channel_dims,
             time_emb_dim=self.time_emb_dim
         ).to(self.device)
-        
+
         checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
-        
+
         # 优先读取 EMA 权重
         if "ema_state_dict" in checkpoint:
             ema_state = checkpoint["ema_state_dict"]
@@ -101,113 +230,85 @@ class FinancialScorer:
             print("  Loaded EMA model weights.")
         elif "model_state_dict" in checkpoint:
             self.model.load_state_dict(checkpoint["model_state_dict"])
-            print("  Loaded normal model weights (EMA weights not found).")
+            print("  Loaded normal model weights (EMA not found).")
         else:
             self.model.load_state_dict(checkpoint)
             print("  Loaded raw checkpoint state dict.")
-            
+
         self.model.eval()
-        
+
         # 4. 初始化 DDPMScheduler
         self.scheduler = DDPMScheduler(
             num_timesteps=self.T,
             beta_start=self.beta_start,
             beta_end=self.beta_end
         ).to(self.device)
-        
+
         # 5. 加载 TimeSeriesScaler
         print("[FinancialScorer] Loading TimeSeriesScaler...")
         self.scaler = TimeSeriesScaler()
         self.scaler.load(scaler_path)
 
-    def compute_distribution_metrics(self, real_norm: torch.Tensor, fake_norm: torch.Tensor) -> dict:
-        """
-        在 GPU 上计算 Wasserstein 距离和 MMD 距离。
-        """
-        r_dev = real_norm.to(self.device)
-        f_dev = fake_norm.to(self.device)
-        
-        # 1D Wasserstein (单通道和联合通道)
-        sp_wass = calculate_1d_wasserstein(r_dev[:, 0, :], f_dev[:, 0, :])
-        dg_wass = calculate_1d_wasserstein(r_dev[:, 1, :], f_dev[:, 1, :])
-        joint_wass = calculate_1d_wasserstein(r_dev, f_dev)
-        
-        # MMD (把每个路径展平为 C * L 的特征向量)
-        B_r, C, L = r_dev.shape
-        B_f = f_dev.shape[0]
-        r_feat = r_dev.reshape(B_r, C * L)
-        f_feat = f_dev.reshape(B_f, C * L)
-        
-        mmd_val = calculate_mmd(r_feat, f_feat)
-        
-        return {
-            "sp_wasserstein": sp_wass,
-            "dg_wasserstein": dg_wass,
-            "joint_wasserstein": joint_wass,
-            "mmd": mmd_val
-        }
+        # 6. 校准状态 (由 calibrate_from_real 填充)
+        self._calibrated = False
+        self.real_baselines = {}   # 各指标的 (mean, std)
+        self.real_mse_dist = None  # 真实数据的逐窗口 DDPM MSE 分布
+        self.real_stats_list = []  # 真实数据每个窗口的 stats 字典列表
+
+    # ──────────────────────────────────────────────
+    # 数据加载
+    # ──────────────────────────────────────────────
 
     def load_and_preprocess_data(self, csv_path: str, target_seq_len: int = None) -> tuple[torch.Tensor, np.ndarray]:
         """
         加载并预处理数据。
-        返回:
-            x_normalized: (Batch, 2, seq_len) PyTorch 张量
-            x_changes:    (Batch, 2, seq_len) NumPy 数组 (真实量级)
+        Returns:
+            x_normalized: (Batch, 2, seq_len) PyTorch 张量（标准化空间）
+            x_changes:    (Batch, 2, seq_len) NumPy 数组（真实量级）
         """
         df = pd.read_csv(csv_path)
-        
-        # 检测是否为宽表 (DDPM/SABR 生成格式)
-        is_wide = False
         cols = df.columns.tolist()
-        
-        # 支持 sp500_0, sp500_level_0 等格式
-        sp_cols = sorted([c for c in cols if (c.startswith("sp500_") or c.startswith("sp500_level_")) and c.split("_")[-1].isdigit()],
-                         key=lambda c: int(c.split("_")[-1]))
-        dg_cols = sorted([c for c in cols if (c.startswith("dgs10_") or c.startswith("dgs10_level_")) and c.split("_")[-1].isdigit()],
-                         key=lambda c: int(c.split("_")[-1]))
-                         
-        if len(sp_cols) >= 2 and len(dg_cols) >= 2:
-            is_wide = True
-            
+
+        # 检测宽表格式 (sp500_0, sp500_1, ... / dgs10_0, ...)
+        sp_cols = sorted(
+            [c for c in cols if (c.startswith("sp500_") or c.startswith("sp500_level_")) and c.split("_")[-1].isdigit()],
+            key=lambda c: int(c.split("_")[-1])
+        )
+        dg_cols = sorted(
+            [c for c in cols if (c.startswith("dgs10_") or c.startswith("dgs10_level_")) and c.split("_")[-1].isdigit()],
+            key=lambda c: int(c.split("_")[-1])
+        )
+        is_wide = len(sp_cols) >= 2 and len(dg_cols) >= 2
+
         if is_wide:
-            # 检查是否为 level (价格/收益率绝对水平) 格式
             is_level = any("level" in c for c in sp_cols)
             sp_data = df[sp_cols].values.astype(np.float32)
             dg_data = df[dg_cols].values.astype(np.float32)
-            
+
             if is_level:
-                # 按照 price_table_converter.py 中的基准初始值还原
                 sp500_initial = 500.0
                 dgs10_initial = 2.0
-                
                 sp_changes = np.zeros_like(sp_data)
                 dg_changes = np.zeros_like(dg_data)
-                
-                # t = 0
                 sp_changes[:, 0] = sp_data[:, 0] / sp500_initial - 1.0
                 dg_changes[:, 0] = dg_data[:, 0] - dgs10_initial
-                
-                # t > 0
                 sp_changes[:, 1:] = sp_data[:, 1:] / sp_data[:, :-1] - 1.0
                 dg_changes[:, 1:] = np.diff(dg_data, axis=1)
-                
-                print(f"  [Wide Format] Converted level columns to daily returns/differences.")
+                print(f"  [Wide] Converted level → daily changes.")
             else:
                 sp_changes = sp_data
                 dg_changes = dg_data
-                print(f"  [Wide Format] Loaded returns/differences directly.")
-                
-            x_changes = np.stack([sp_changes, dg_changes], axis=1) # (N, 2, seq_len)
-            
+                print(f"  [Wide] Loaded daily changes directly.")
+
+            x_changes = np.stack([sp_changes, dg_changes], axis=1)
+
         else:
-            # 长表格式 (例如真实的测试集历史数据)
+            # 长表格式
             col_pairs = [
-                ("sp500", "DGS10"),
-                ("SP500", "DGS10"),
+                ("sp500", "DGS10"), ("SP500", "DGS10"),
                 ("Asset_1_Return", "Asset_2_Return"),
                 ("Asset_1_Level", "Asset_2_Level"),
-                ("asset_1", "asset_2"),
-                ("Asset1", "Asset2"),
+                ("asset_1", "asset_2"), ("Asset1", "Asset2"),
             ]
             col1, col2 = None, None
             for c1, c2 in col_pairs:
@@ -215,389 +316,546 @@ class FinancialScorer:
                     col1, col2 = c1, c2
                     break
             if col1 is None or col2 is None:
-                numeric_cols = [c for c in df.select_dtypes(include=[np.number]).columns if c.lower() not in {"day", "index", "date"}]
+                numeric_cols = [c for c in df.select_dtypes(include=[np.number]).columns
+                                if c.lower() not in {"day", "index", "date"}]
                 if len(numeric_cols) < 2:
-                    raise ValueError(f"CSV must contain at least 2 numeric asset columns, got {list(df.columns)}")
+                    raise ValueError(f"CSV must have ≥2 numeric columns, got {list(df.columns)}")
                 col1, col2 = numeric_cols[0], numeric_cols[1]
-                
+
             df_clean = df[[col1, col2]].copy().ffill().bfill()
-            
-            # 判断是否需要转换为 changes
-            # 如果均值显著大于1.0，通常是指数水平价格/收益率水平
+
+            # 判断是否为价格水平 (level) 数据
             is_level = df_clean[col1].abs().mean() > 1.0
             if is_level:
                 df_changes = pd.DataFrame(index=df_clean.index)
                 df_changes[col1] = df_clean[col1].pct_change()
                 df_changes[col2] = df_clean[col2].diff()
                 df_changes = df_changes.dropna()
-                print(f"  [Long Format] Converted level columns to daily returns/differences.")
+                print(f"  [Long] Converted level → daily changes.")
             else:
                 df_changes = df_clean
-                print(f"  [Long Format] Loaded returns/differences directly.")
-                
-            raw_data = df_changes.values.astype(np.float32) # (N, 2)
-            
-            # 滑动窗口划分 (与 TimeSeriesDataset 一致)
+                print(f"  [Long] Loaded daily changes directly.")
+
+            raw_data = df_changes.values.astype(np.float32)
+
+            # 滑动窗口划分
             n_days = len(raw_data)
             stride = 5
             seq_len_to_use = target_seq_len if target_seq_len is not None else self.seq_len
             window_indices = list(range(0, n_days - seq_len_to_use + 1, stride))
             if len(window_indices) == 0:
-                raise ValueError(f"Data length {n_days} is less than required sequence length {seq_len_to_use}")
-                
+                raise ValueError(f"Data length {n_days} < required seq_len {seq_len_to_use}")
+
             windows = []
             for start in window_indices:
-                win = raw_data[start : start + seq_len_to_use] # (seq_len_to_use, 2)
-                windows.append(win.T) # (2, seq_len_to_use)
-                
-            x_changes = np.stack(windows, axis=0) # (Batch, 2, seq_len_to_use)
-            print(f"  [Long Format] Divided historical series into {len(x_changes)} sliding windows of length {seq_len_to_use}.")
-            
-        # 转换并归一化
+                win = raw_data[start:start + seq_len_to_use]
+                windows.append(win.T)
+
+            x_changes = np.stack(windows, axis=0)
+            print(f"  [Long] {len(x_changes)} windows of length {seq_len_to_use}.")
+
+        # 标准化
         x_tensor = torch.tensor(x_changes, dtype=torch.float32)
         x_normalized = self.scaler.transform(x_tensor)
-        
+
         return x_normalized, x_changes
 
+    # ──────────────────────────────────────────────
+    # DDPM MSE 计算 (逐路径)
+    # ──────────────────────────────────────────────
+
     @torch.no_grad()
-    def compute_ddpm_mse(self, x_normalized: torch.Tensor, t_eval: int = 200, batch_size: int = 64) -> float:
+    def compute_ddpm_mse_per_path(
+        self, x_normalized: torch.Tensor, t_eval: int = 200, batch_size: int = 64
+    ) -> np.ndarray:
         """
-        计算 DDPM 隐式物理法则评分 (Noise Prediction MSE)。
+        逐路径计算 DDPM Noise Prediction MSE。
+
+        Returns:
+            np.ndarray: (N,) 每条路径的 MSE 值
         """
         self.model.eval()
         B = x_normalized.shape[0]
         L = x_normalized.shape[2]
-        
-        # 核心逻辑：确保输入序列长度是 2**d 的倍数，以配合 U-Net 对齐下采样/上采样
+
+        # U-Net 对齐
         multiple = 2 ** len(self.channel_dims)
         if L % multiple != 0:
             L_clean = (L // multiple) * multiple
             x_input = x_normalized[:, :, :L_clean]
-            print(f"  [DDPM MSE] Input sequence length {L} is not a multiple of {multiple}. Slicing to {L_clean} for U-Net compatibility.")
         else:
             x_input = x_normalized
-            
-        total_loss = 0.0
-        num_samples = 0
-        
+
+        mse_per_path = np.zeros(B)
+
         for i in range(0, B, batch_size):
-            x0 = x_input[i:i+batch_size].to(self.device)
+            x0 = x_input[i:i + batch_size].to(self.device)
             n_batch = x0.shape[0]
-            
+
             t = torch.full((n_batch,), t_eval, device=self.device, dtype=torch.long)
             noise = torch.randn_like(x0)
-            
-            # 使用 DDPMScheduler 前向加噪
+
+            # 前向加噪
             xt = self.scheduler.q_sample(x0, t, noise)
-            
+
             # 提取初始条件
             c = x0[:, :, 0]
+
             # 模型预测噪声
             noise_pred = self.model(xt, t, c)
-            
-            # 计算批次 MSE Loss (reduction='mean')
-            loss = F.mse_loss(noise_pred, noise, reduction="mean")
-            
-            total_loss += loss.item() * n_batch
-            num_samples += n_batch
-            
-        return total_loss / num_samples
 
-    def compute_acf_vector(self, data: np.ndarray, max_lag: int = 10) -> np.ndarray:
-        """
-        计算每个路径的绝对收益序列的自相关系数 (ACF)，并取平均。
-        """
-        N, L = data.shape
-        abs_data = np.abs(data)
-        
-        acf_all = np.zeros((N, max_lag))
-        for i in range(N):
-            path = abs_data[i]
-            path_mean = np.mean(path)
-            path_var = np.var(path)
-            if path_var < 1e-8:
-                continue
-            for lag in range(1, max_lag + 1):
-                cov = np.mean((path[lag:] - path_mean) * (path[:-lag] - path_mean))
-                acf_all[i, lag-1] = cov / path_var
-                
-        return np.mean(acf_all, axis=0)
+            # 逐路径 MSE (在 C 和 L 维度上取平均)
+            per_sample_mse = F.mse_loss(noise_pred, noise, reduction="none")
+            per_sample_mse = per_sample_mse.mean(dim=(1, 2))  # (n_batch,)
 
-    def compute_stylized_facts(self, x_changes: np.ndarray) -> dict:
+            mse_per_path[i:i + n_batch] = per_sample_mse.cpu().numpy()
+
+        return mse_per_path
+
+    # ──────────────────────────────────────────────
+    # 校准 (Calibration from Real Data)
+    # ──────────────────────────────────────────────
+
+    def calibrate_from_real(self, real_csv_path: str, t_eval: int = 200, target_seq_len: int = None):
         """
-        计算量化金融典型事实 (Stylized Facts) 指标。
+        用真实数据校准评分系统。
+
+        对真实数据的每个滑动窗口:
+          1. 计算 DDPM MSE → 得到 real_mse_distribution
+          2. 计算 Stylized Facts → 得到各指标的 (mean, std) 作为自适应 σ
+
+        校准后，self.real_baselines 和 self.real_mse_dist 会被填充。
         """
-        # x_changes: (Batch, 2, seq_len)
-        sp_data = x_changes[:, 0, :]  # (Batch, seq_len)
-        dg_data = x_changes[:, 1, :]  # (Batch, seq_len)
-        
-        # 1. Moments (偏度和峰度) - 基于扁平化的全局序列
-        sp_flat = sp_data.flatten()
-        dg_flat = dg_data.flatten()
-        
-        sp_skew_val = skew(sp_flat)
-        sp_kurt_val = kurtosis(sp_flat)  # excess kurtosis
-        dg_skew_val = skew(dg_flat)
-        dg_kurt_val = kurtosis(dg_flat)
-        
-        # 2. Volatility Clustering (Lag 1-10 ACF)
-        sp_acf = self.compute_acf_vector(sp_data, max_lag=10)
-        dg_acf = self.compute_acf_vector(dg_data, max_lag=10)
-        
-        # 3. Unconditional Correlation
-        uncond_corr = np.corrcoef(sp_flat, dg_flat)[0, 1]
-        if np.isnan(uncond_corr):
-            uncond_corr = 0.0
-            
-        # 4. Tail Dependence (极端下跌下的条件相关系数)
-        # 极端下跌定义为 S&P 500 低于其均值 -1.5 个标准差
-        mu_sp = np.mean(sp_flat)
-        std_sp = np.std(sp_flat)
-        tail_threshold = mu_sp - 1.5 * std_sp
-        
-        tail_mask = sp_flat < tail_threshold
-        if np.sum(tail_mask) >= 10:
-            tail_corr = np.corrcoef(sp_flat[tail_mask], dg_flat[tail_mask])[0, 1]
-            if np.isnan(tail_corr):
-                tail_corr = 0.0
+        print(f"\n{'='*65}")
+        print(f"  [Calibration] Processing real data: {real_csv_path}")
+        print(f"{'='*65}")
+
+        real_norm, real_raw = self.load_and_preprocess_data(real_csv_path, target_seq_len=target_seq_len)
+        N_real = real_raw.shape[0]
+        print(f"  Real data: {N_real} windows, shape={real_raw.shape}")
+
+        # 1. 逐窗口 DDPM MSE
+        print(f"  Computing DDPM MSE for {N_real} real windows (t={t_eval})...")
+        self.real_mse_dist = self.compute_ddpm_mse_per_path(real_norm, t_eval=t_eval)
+        print(f"    Real MSE: mean={self.real_mse_dist.mean():.6f}, "
+              f"std={self.real_mse_dist.std():.6f}, "
+              f"range=[{self.real_mse_dist.min():.6f}, {self.real_mse_dist.max():.6f}]")
+
+        # 2. 逐窗口 Stylized Facts
+        print(f"  Computing Stylized Facts for {N_real} real windows...")
+        self.real_stats_list = compute_batch_stats(real_raw)
+
+        # 3. 汇总各指标的 baseline (mean, std)
+        scalar_keys = ["sp_skew", "sp_kurt", "dg_skew", "dg_kurt", "uncond_corr", "tail_corr"]
+        self.real_baselines = {}
+
+        for key in scalar_keys:
+            values = np.array([s[key] for s in self.real_stats_list])
+            self.real_baselines[key] = {
+                "mean": float(np.mean(values)),
+                "std": float(np.std(values)),
+                "min": float(np.min(values)),
+                "max": float(np.max(values)),
+            }
+
+        # ACF 向量: 取各窗口的平均 ACF 作为 baseline，std 从 MAE 分布计算
+        for acf_key in ["sp_acf", "dg_acf"]:
+            all_acf = np.array([s[acf_key] for s in self.real_stats_list])  # (N_real, max_lag)
+            mean_acf = np.mean(all_acf, axis=0)
+
+            # 每个窗口与全局均值的 MAE
+            mae_per_window = np.mean(np.abs(all_acf - mean_acf), axis=1)  # (N_real,)
+            self.real_baselines[acf_key] = {
+                "mean_acf": mean_acf.tolist(),
+                "mae_mean": float(np.mean(mae_per_window)),
+                "mae_std": float(np.std(mae_per_window)),
+            }
+
+        # 保留标准化后的真实数据引用（用于 Wasserstein 计算）
+        self._real_norm = real_norm
+        self._real_raw = real_raw
+
+        self._calibrated = True
+
+        # 打印校准结果
+        print(f"\n  {'─'*55}")
+        print(f"  Calibration Results (Adaptive σ from real data):")
+        print(f"  {'─'*55}")
+        for key in scalar_keys:
+            b = self.real_baselines[key]
+            print(f"    {key:15s}: mean={b['mean']:+.4f}, σ={b['std']:.4f}")
+        for acf_key in ["sp_acf", "dg_acf"]:
+            b = self.real_baselines[acf_key]
+            print(f"    {acf_key:15s}: MAE mean={b['mae_mean']:.4f}, σ={b['mae_std']:.4f}")
+        print(f"    {'ddpm_mse':15s}: mean={self.real_mse_dist.mean():.6f}, "
+              f"σ={self.real_mse_dist.std():.6f}")
+        print(f"  {'─'*55}\n")
+
+    # ──────────────────────────────────────────────
+    # 评分
+    # ──────────────────────────────────────────────
+
+    def _score_ddpm_mse(self, fake_mse: float) -> float:
+        """
+        DDPM MSE 评分 — 双阶段混合评分:
+
+        阶段 1 (在真实分布范围内): 分位数评分
+          - fake_mse 在 real 分布中的排位 → 100 * (1 - percentile)
+
+        阶段 2 (超出真实分布范围): 对数比率指数衰减
+          - score = boundary_score * exp(-|log(fake_mse / real_boundary)|)
+          - 使用 log-ratio 确保在 MSE 跨越数量级时仍有区分度
+
+        这解决了 v1 中 fake MSE 天然比 real 高 10~100 倍导致的 0 分问题，
+        同时在 fake MSE 接近 real 范围时给予合理的高分。
+        """
+        real_median = float(np.median(self.real_mse_dist))
+        real_max = float(np.max(self.real_mse_dist))
+
+        if fake_mse <= real_max:
+            # 阶段 1: 在真实分布范围内，使用分位数
+            rank = np.mean(self.real_mse_dist <= fake_mse)
+            score = 100.0 * (1.0 - rank)
         else:
-            tail_corr = 0.0
-            
-        return {
-            "sp_skew": float(sp_skew_val),
-            "sp_kurt": float(sp_kurt_val),
-            "dg_skew": float(dg_skew_val),
-            "dg_kurt": float(dg_kurt_val),
-            "sp_acf": sp_acf.tolist(),
-            "dg_acf": dg_acf.tolist(),
-            "uncond_corr": float(uncond_corr),
-            "tail_corr": float(tail_corr)
-        }
+            # 阶段 2: 超出范围，使用 log-ratio 衰减
+            # boundary_score: fake_mse 刚好等于 real_max 时的分数 (接近 0 分位)
+            boundary_score = 5.0  # 给予 5 分作为刚出界的基础分
+            log_ratio = np.log(fake_mse / real_max)
+            # 衰减尺度 = 1.0 (每增加 e 倍 MSE，分数衰减约 63%)
+            score = boundary_score * np.exp(-log_ratio / 1.0)
 
-    def calculate_fidelity_score(self, real_facts: dict, fake_facts: dict, real_mse: float, fake_mse: float, dist_metrics: dict = None) -> tuple[float, dict]:
+        return max(0.0, min(100.0, score))
+
+    def _score_exponential(self, fake_val: float, baseline_mean: float, baseline_std: float) -> float:
         """
-        计算模型各项指标的偏差，并采用指数衰减形式给出 0-100 的保真度打分 (Fidelity Score)。
+        自适应指数衰减评分:
+          score = 100 * exp(-|fake - baseline_mean| / max(sigma, floor))
+
+        sigma 使用真实数据的标准差。当 σ 过小时使用 floor 防止过度敏感。
+        """
+        diff = abs(fake_val - baseline_mean)
+        # σ 下限: 防止 σ 过小导致微小偏差即 0 分
+        sigma = max(baseline_std, abs(baseline_mean) * 0.1, 0.01)
+        return max(0.0, 100.0 * np.exp(-diff / sigma))
+
+    def _score_acf(self, fake_acf: np.ndarray, acf_key: str) -> float:
+        """
+        ACF 向量评分: MAE 与 baseline 对比。
+        """
+        baseline = self.real_baselines[acf_key]
+        mean_acf = np.array(baseline["mean_acf"])
+        mae = float(np.mean(np.abs(fake_acf - mean_acf)))
+
+        sigma = max(baseline["mae_std"], baseline["mae_mean"] * 0.2, 0.005)
+        return max(0.0, 100.0 * np.exp(-mae / sigma))
+
+    def score_single_path(self, path_stats: dict, ddpm_mse: float) -> tuple[float, dict]:
+        """
+        对单条路径计算综合评分。
+
+        Returns:
+            (total_score, component_scores_dict)
         """
         scores = {}
-        
-        # 1. DDPM MSE 打分 (权重 20% / 10%)
-        mse_diff = abs(fake_mse - real_mse)
-        scores["ddpm_mse"] = max(0.0, 100.0 * np.exp(-mse_diff / (real_mse + 1e-8)))
-        
-        # 2. Moments 偏度与峰度打分 (每个指标占 5%)
-        sp_skew_diff = abs(fake_facts["sp_skew"] - real_facts["sp_skew"])
-        scores["sp_skew"] = max(0.0, 100.0 * np.exp(-sp_skew_diff / 0.5))
-        
-        sp_kurt_diff = abs(fake_facts["sp_kurt"] - real_facts["sp_kurt"])
-        scores["sp_kurt"] = max(0.0, 100.0 * np.exp(-sp_kurt_diff / 1.0))
-        
-        dg_skew_diff = abs(fake_facts["dg_skew"] - real_facts["dg_skew"])
-        scores["dg_skew"] = max(0.0, 100.0 * np.exp(-dg_skew_diff / 0.5))
-        
-        dg_kurt_diff = abs(fake_facts["dg_kurt"] - real_facts["dg_kurt"])
-        scores["dg_kurt"] = max(0.0, 100.0 * np.exp(-dg_kurt_diff / 1.0))
-        
-        # 3. Volatility Clustering ACF 打分 (每个资产占 10% / 5%)
-        real_sp_acf = np.array(real_facts["sp_acf"])
-        fake_sp_acf = np.array(fake_facts["sp_acf"])
-        sp_acf_mae = np.mean(np.abs(fake_sp_acf - real_sp_acf))
-        scores["sp_acf"] = max(0.0, 100.0 * np.exp(-sp_acf_mae / 0.05))
-        
-        real_dg_acf = np.array(real_facts["dg_acf"])
-        fake_dg_acf = np.array(fake_facts["dg_acf"])
-        dg_acf_mae = np.mean(np.abs(fake_dg_acf - real_dg_acf))
-        scores["dg_acf"] = max(0.0, 100.0 * np.exp(-dg_acf_mae / 0.05))
-        
-        # 4. Tail Dependence 尾部相关性打分 (权重 20% / 15%)
-        tail_diff = abs(fake_facts["tail_corr"] - real_facts["tail_corr"])
-        scores["tail_corr"] = max(0.0, 100.0 * np.exp(-tail_diff / 0.2))
-        
-        # 5. Unconditional Correlation 无条件相关性打分 (权重 20% / 15%)
-        uncond_diff = abs(fake_facts["uncond_corr"] - real_facts["uncond_corr"])
-        scores["uncond_corr"] = max(0.0, 100.0 * np.exp(-uncond_diff / 0.1))
-        
-        # 如果包含高级分布度量，进行加权整合
-        if dist_metrics is not None:
-            # Wasserstein 距离打分 (衰减尺度为 0.2)
-            scores["joint_wasserstein"] = max(0.0, 100.0 * np.exp(-dist_metrics["joint_wasserstein"] / 0.2))
-            # MMD 距离打分 (衰减尺度为 0.1)
-            scores["mmd"] = max(0.0, 100.0 * np.exp(-dist_metrics["mmd"] / 0.1))
-            
-            # 使用重平衡的权重
-            weights = {
-                "ddpm_mse": 0.10,
-                "sp_skew": 0.05,
-                "sp_kurt": 0.05,
-                "dg_skew": 0.05,
-                "dg_kurt": 0.05,
-                "sp_acf": 0.05,
-                "dg_acf": 0.05,
-                "tail_corr": 0.15,
-                "uncond_corr": 0.15,
-                "joint_wasserstein": 0.15,
-                "mmd": 0.20
-            }
-        else:
-            weights = {
-                "ddpm_mse": 0.20,
-                "sp_skew": 0.05,
-                "sp_kurt": 0.05,
-                "dg_skew": 0.05,
-                "dg_kurt": 0.05,
-                "sp_acf": 0.10,
-                "dg_acf": 0.10,
-                "tail_corr": 0.20,
-                "uncond_corr": 0.20
-            }
-        
-        total_score = sum(scores[key] * weights[key] for key in weights)
-        return total_score, scores
 
-    def generate_report(self, real_csv_path: str, fake_csv_path: str, t_eval: int = 200, json_output_path: str = None) -> dict:
+        # 1. DDPM MSE (分位数)
+        scores["ddpm_mse"] = self._score_ddpm_mse(ddpm_mse)
+
+        # 2. Scalar Stylized Facts (自适应指数衰减)
+        for key in ["sp_skew", "sp_kurt", "dg_skew", "dg_kurt", "uncond_corr", "tail_corr"]:
+            b = self.real_baselines[key]
+            scores[key] = self._score_exponential(path_stats[key], b["mean"], b["std"])
+
+        # 3. ACF (向量 MAE)
+        scores["sp_acf"] = self._score_acf(np.array(path_stats["sp_acf"]), "sp_acf")
+        scores["dg_acf"] = self._score_acf(np.array(path_stats["dg_acf"]), "dg_acf")
+
+        # Wasserstein 暂时置 0 (整体批次指标，在 generate_report 中计算)
+        scores["wasserstein"] = 0.0
+
+        total = sum(scores[k] * self.WEIGHTS[k] for k in self.WEIGHTS)
+        return total, scores
+
+    def score_batch(
+        self,
+        fake_csv_path: str,
+        t_eval: int = 200,
+        target_seq_len: int = None,
+    ) -> dict:
         """
-        加载真实与虚假数据，执行评估打分，并生成格式化报告。
+        对一个 fake 数据集进行批量评分。
+
+        Returns:
+            dict 包含:
+              - per_path_scores: (N,) 每条路径的总分
+              - per_path_components: list[dict] 每条路径的各指标分
+              - batch_total: 批次总分
+              - batch_components: 批次各指标平均分
+              - wasserstein_score: 整体 Wasserstein 分
+              - fake_norm, fake_raw, fake_stats, fake_mse: 原始数据
         """
-        # 1. 优先加载 Fake 数据，确定评估的目标序列长度 L
-        print(f"\n[Phase 1] Processing Evaluated Data ({fake_csv_path})...")
-        fake_norm, fake_raw = self.load_and_preprocess_data(fake_csv_path)
-        L_target = fake_raw.shape[2] # 获取 fake 数据的实际长度 (如 1260)
-        fake_mse = self.compute_ddpm_mse(fake_norm, t_eval=t_eval)
-        fake_facts = self.compute_stylized_facts(fake_raw)
-        
-        # 2. 根据 L 加载 Real 数据，确保两者窗口长度完全一致
-        print(f"\n[Phase 2] Processing Real Data Baseline ({real_csv_path})...")
-        real_norm, real_raw = self.load_and_preprocess_data(real_csv_path, target_seq_len=L_target)
-        real_mse = self.compute_ddpm_mse(real_norm, t_eval=t_eval)
-        real_facts = self.compute_stylized_facts(real_raw)
-        
-        # 3. 计算 GPU 加速版本的高级概率分布度量
-        print(f"\n[Phase 2.5] Computing Advanced Distribution Metrics on GPU...")
-        dist_metrics = self.compute_distribution_metrics(real_norm, fake_norm)
-        
-        print("\n[Phase 3] Scoring Model Performance...")
-        total_score, component_scores = self.calculate_fidelity_score(
-            real_facts, fake_facts, real_mse, fake_mse, dist_metrics=dist_metrics
-        )
-        
-        # 组织报告数据
+        assert self._calibrated, "Must call calibrate_from_real() first!"
+
+        print(f"\n[Scoring] Loading fake data: {fake_csv_path}")
+        fake_norm, fake_raw = self.load_and_preprocess_data(fake_csv_path, target_seq_len=target_seq_len)
+        N_fake = fake_raw.shape[0]
+        L_target = fake_raw.shape[2]
+        print(f"  Fake data: {N_fake} paths, shape={fake_raw.shape}")
+
+        # 1. DDPM MSE
+        print(f"  Computing DDPM MSE for {N_fake} fake paths (t={t_eval})...")
+        fake_mse = self.compute_ddpm_mse_per_path(fake_norm, t_eval=t_eval)
+        print(f"    Fake MSE: mean={fake_mse.mean():.6f}, "
+              f"std={fake_mse.std():.6f}, "
+              f"range=[{fake_mse.min():.6f}, {fake_mse.max():.6f}]")
+
+        # 2. Stylized Facts
+        print(f"  Computing Stylized Facts for {N_fake} fake paths...")
+        fake_stats = compute_batch_stats(fake_raw)
+
+        # 3. Wasserstein (整体批次)
+        print(f"  Computing Joint Wasserstein distance...")
+        wass_score = self._compute_wasserstein_score(fake_norm)
+
+        # 4. 逐路径评分
+        print(f"  Scoring {N_fake} paths...")
+        per_path_scores = np.zeros(N_fake)
+        per_path_components = []
+
+        for i in range(N_fake):
+            total, comp = self.score_single_path(fake_stats[i], fake_mse[i])
+            # 加上 Wasserstein 的加权贡献 (整体分布指标，对所有路径统一)
+            total += wass_score * self.WEIGHTS["wasserstein"]
+            comp["wasserstein"] = wass_score
+            per_path_scores[i] = total
+            per_path_components.append(comp)
+
+        # 5. 批次统计
+        batch_components = {}
+        for key in self.WEIGHTS:
+            vals = [c[key] for c in per_path_components]
+            batch_components[key] = float(np.mean(vals))
+
+        batch_total = sum(batch_components[k] * self.WEIGHTS[k] for k in self.WEIGHTS)
+
+        return {
+            "per_path_scores": per_path_scores,
+            "per_path_components": per_path_components,
+            "batch_total": batch_total,
+            "batch_components": batch_components,
+            "wasserstein_score": wass_score,
+            "fake_norm": fake_norm,
+            "fake_raw": fake_raw,
+            "fake_stats": fake_stats,
+            "fake_mse": fake_mse,
+            "L_target": L_target,
+        }
+
+    def _compute_wasserstein_score(self, fake_norm: torch.Tensor) -> float:
+        """计算整体 Joint 1D Wasserstein 距离并转为评分。"""
+        r_dev = self._real_norm.to(self.device)
+        f_dev = fake_norm.to(self.device)
+        joint_wass = calculate_1d_wasserstein(r_dev, f_dev)
+        # 使用 σ=0.5 的指数衰减（Wasserstein 距离通常在 0~1 范围）
+        score = max(0.0, 100.0 * np.exp(-joint_wass / 0.5))
+        return score
+
+    # ──────────────────────────────────────────────
+    # 报告生成
+    # ──────────────────────────────────────────────
+
+    def generate_report(
+        self,
+        real_csv_path: str,
+        fake_csv_path: str,
+        t_eval: int = 200,
+        json_output_path: str = None,
+    ) -> dict:
+        """
+        完整评估流程: 校准 → 评分 → 报告。
+        """
+        # 1. 加载 Fake 数据确定序列长度
+        print(f"\n[Phase 0] Detecting target sequence length from fake data...")
+        df_fake_peek = pd.read_csv(fake_csv_path, nrows=1)
+        sp_cols_peek = [c for c in df_fake_peek.columns if c.startswith("sp500_") and c.split("_")[-1].isdigit()]
+        if len(sp_cols_peek) >= 2:
+            L_target = len(sp_cols_peek)
+            print(f"  Detected wide format: L_target = {L_target}")
+        else:
+            L_target = None
+            print(f"  Long format detected, using model seq_len={self.seq_len}")
+
+        # 2. 校准
+        self.calibrate_from_real(real_csv_path, t_eval=t_eval, target_seq_len=L_target)
+
+        # 3. 评分
+        result = self.score_batch(fake_csv_path, t_eval=t_eval, target_seq_len=L_target)
+
+        # 4. 真实数据自检分数（验证校准是否合理）
+        print(f"\n[Self-Check] Computing real data self-scores...")
+        real_self_scores = np.zeros(len(self.real_stats_list))
+        for i in range(len(self.real_stats_list)):
+            total, _ = self.score_single_path(self.real_stats_list[i], self.real_mse_dist[i])
+            # 自检时 Wasserstein = 0（自身对自身距离为 0 → 得 100 分）
+            total += 100.0 * self.WEIGHTS["wasserstein"]
+            real_self_scores[i] = total
+
+        print(f"  Real self-score: mean={real_self_scores.mean():.2f}, "
+              f"std={real_self_scores.std():.2f}, "
+              f"range=[{real_self_scores.min():.2f}, {real_self_scores.max():.2f}]")
+
+        # 5. 组织报告
         report = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+            "version": "v2",
             "t_eval": t_eval,
-            "eval_seq_len": L_target,
+            "eval_seq_len": result["L_target"],
+            "weights": self.WEIGHTS,
             "real_data": {
                 "path": real_csv_path,
-                "samples": real_norm.shape[0],
-                "ddpm_mse": real_mse,
-                "stylized_facts": real_facts
+                "windows": len(self.real_stats_list),
+                "ddpm_mse_mean": float(self.real_mse_dist.mean()),
+                "ddpm_mse_std": float(self.real_mse_dist.std()),
+                "self_score_mean": float(real_self_scores.mean()),
+                "self_score_std": float(real_self_scores.std()),
+                "baselines": self.real_baselines,
             },
             "fake_data": {
                 "path": fake_csv_path,
-                "samples": fake_norm.shape[0],
-                "ddpm_mse": fake_mse,
-                "stylized_facts": fake_facts
+                "paths": result["fake_raw"].shape[0],
+                "ddpm_mse_mean": float(result["fake_mse"].mean()),
+                "ddpm_mse_std": float(result["fake_mse"].std()),
             },
-            "distribution_metrics": dist_metrics,
             "scores": {
-                "total": total_score,
-                "components": component_scores
-            }
+                "batch_total": result["batch_total"],
+                "batch_components": result["batch_components"],
+                "per_path_mean": float(result["per_path_scores"].mean()),
+                "per_path_std": float(result["per_path_scores"].std()),
+                "per_path_min": float(result["per_path_scores"].min()),
+                "per_path_max": float(result["per_path_scores"].max()),
+                "wasserstein_score": result["wasserstein_score"],
+            },
         }
-        
-        # 打印排版精美的 Markdown 表格
-        self._print_markdown_report(report)
-        
-        # 保存为 JSON 报告
+
+        # 6. 打印报告
+        self._print_markdown_report(report, result, real_self_scores)
+
+        # 7. 保存 JSON
         if json_output_path:
             os.makedirs(os.path.dirname(os.path.abspath(json_output_path)), exist_ok=True)
             with open(json_output_path, "w", encoding="utf-8") as f:
                 json.dump(report, f, indent=4, ensure_ascii=False)
-            print(f"\n[FinancialScorer] Report successfully exported to: {json_output_path}")
-            
+            print(f"\n[FinancialScorer] Report exported to: {json_output_path}")
+
         return report
 
-    def _print_markdown_report(self, report: dict):
-        real_data = report["real_data"]
-        fake_data = report["fake_data"]
+    def _print_markdown_report(self, report: dict, result: dict, real_self_scores: np.ndarray):
+        """打印格式化的 Markdown 报告。"""
         scores = report["scores"]
-        
-        real_facts = real_data["stylized_facts"]
-        fake_facts = fake_data["stylized_facts"]
-        comp_scores = scores["components"]
-        
-        # 格式化列表
-        sp_real_acf_str = ", ".join(f"{v:.4f}" for v in real_facts["sp_acf"][:3]) + "..."
-        sp_fake_acf_str = ", ".join(f"{v:.4f}" for v in fake_facts["sp_acf"][:3]) + "..."
-        dg_real_acf_str = ", ".join(f"{v:.4f}" for v in real_facts["dg_acf"][:3]) + "..."
-        dg_fake_acf_str = ", ".join(f"{v:.4f}" for v in fake_facts["dg_acf"][:3]) + "..."
-        
-        print("\n" + "=" * 80)
-        print("                   双资产模拟模型体检报告 (Evaluation Report)                   ")
-        print("=" * 80)
-        print(f"评估时间:      {report['timestamp']}")
-        print(f"评估时序长度:  {report['eval_seq_len']}")
-        print(f"评估时间步 (t): {report['t_eval']}")
-        print(f"Real 数据路径:  {real_data['path']} (样本数: {real_data['samples']})")
-        print(f"Fake 数据路径:  {fake_data['path']} (样本数: {fake_data['samples']})")
-        print("-" * 80)
-        print(f"【 综合保真度评分 (Fidelity Score) 】  >>>  {scores['total']:.2f} / 100.00")
-        print("-" * 80)
-        
-        # Markdown 表格
-        print("| 评估维度 | 指标名称 (Metric) | 真实基准 (Real) | 评估模型 (Fake) | 绝对偏差 | 单项评分 (Score) |")
-        print("| :--- | :--- | :---: | :---: | :---: | :---: |")
-        
-        # 1. DDPM MSE
-        mse_real = real_data["ddpm_mse"]
-        mse_fake = fake_data["ddpm_mse"]
-        mse_diff = abs(mse_fake - mse_real)
-        print(f"| 隐式物理分布 | DDPM Noise MSE (t={report['t_eval']}) | {mse_real:.6f} | {mse_fake:.6f} | {mse_diff:.6f} | {comp_scores['ddpm_mse']:.2f} |")
-        
-        # 2. Moments
-        print(f"| Moment Matching | S&P 500 Skewness | {real_facts['sp_skew']:.4f} | {fake_facts['sp_skew']:.4f} | {abs(fake_facts['sp_skew'] - real_facts['sp_skew']):.4f} | {comp_scores['sp_skew']:.2f} |")
-        print(f"| Moment Matching | S&P 500 Kurtosis | {real_facts['sp_kurt']:.4f} | {fake_facts['sp_kurt']:.4f} | {abs(fake_facts['sp_kurt'] - real_facts['sp_kurt']):.4f} | {comp_scores['sp_kurt']:.2f} |")
-        print(f"| Moment Matching | DGS10 Skewness | {real_facts['dg_skew']:.4f} | {fake_facts['dg_skew']:.4f} | {abs(fake_facts['dg_skew'] - real_facts['dg_skew']):.4f} | {comp_scores['dg_skew']:.2f} |")
-        print(f"| Moment Matching | DGS10 Kurtosis | {real_facts['dg_kurt']:.4f} | {fake_facts['dg_kurt']:.4f} | {abs(fake_facts['dg_kurt'] - real_facts['dg_kurt']):.4f} | {comp_scores['dg_kurt']:.2f} |")
-        
-        # 3. Volatility Clustering (ACF)
-        sp_acf_mae = np.mean(np.abs(np.array(fake_facts["sp_acf"]) - np.array(real_facts["sp_acf"])))
-        dg_acf_mae = np.mean(np.abs(np.array(fake_facts["dg_acf"]) - np.array(real_facts["dg_acf"])))
-        print(f"| 波动率聚集 | S&P 500 ACF (Lag 1-3) | {sp_real_acf_str} | {sp_fake_acf_str} | MAE: {sp_acf_mae:.4f} | {comp_scores['sp_acf']:.2f} |")
-        print(f"| 波动率聚集 | DGS10 ACF (Lag 1-3) | {dg_real_acf_str} | {dg_fake_acf_str} | MAE: {dg_acf_mae:.4f} | {comp_scores['dg_acf']:.2f} |")
-        
-        # 4. Correlation & Tail Dependence
-        print(f"| 联合分布关联 | Unconditional Corr | {real_facts['uncond_corr']:.4f} | {fake_facts['uncond_corr']:.4f} | {abs(fake_facts['uncond_corr'] - real_facts['uncond_corr']):.4f} | {comp_scores['uncond_corr']:.2f} |")
-        print(f"| 极端尾部相关 | Tail Correlation (< -1.5σ) | {real_facts['tail_corr']:.4f} | {fake_facts['tail_corr']:.4f} | {abs(fake_facts['tail_corr'] - real_facts['tail_corr']):.4f} | {comp_scores['tail_corr']:.2f} |")
-        
-        # 5. Advanced Distribution Metrics
-        if "distribution_metrics" in report:
-            dm = report["distribution_metrics"]
-            print(f"| 分布距离度量 | SP500 1D Wasserstein | 0.000000 | {dm['sp_wasserstein']:.6f} | {dm['sp_wasserstein']:.6f} | - |")
-            print(f"| 分布距离度量 | DGS10 1D Wasserstein | 0.000000 | {dm['dg_wasserstein']:.6f} | {dm['dg_wasserstein']:.6f} | - |")
-            print(f"| 分布距离度量 | Joint 1D Wasserstein | 0.000000 | {dm['joint_wasserstein']:.6f} | {dm['joint_wasserstein']:.6f} | {comp_scores['joint_wasserstein']:.2f} |")
-            print(f"| 分布距离度量 | Path-Joint MMD (RBF) | 0.000000 | {dm['mmd']:.6f} | {dm['mmd']:.6f} | {comp_scores['mmd']:.2f} |")
-            
-        print("=" * 80)
+        batch_comp = scores["batch_components"]
+
+        print(f"\n{'='*80}")
+        print(f"          双资产模拟模型体检报告 v2 (Evaluation Report)")
+        print(f"{'='*80}")
+        print(f"评估时间:        {report['timestamp']}")
+        print(f"评估序列长度:    {report['eval_seq_len']}")
+        print(f"评估时间步 (t):  {report['t_eval']}")
+        print(f"Real 数据:       {report['real_data']['path']} ({report['real_data']['windows']} 窗口)")
+        print(f"Fake 数据:       {report['fake_data']['path']} ({report['fake_data']['paths']} 路径)")
+        print(f"{'─'*80}")
+
+        # 总分
+        print(f"\n  【 综合保真度评分 (Fidelity Score) 】")
+        print(f"    Fake 批次总分:          {scores['batch_total']:.2f} / 100.00")
+        print(f"    Fake 逐路径平均:        {scores['per_path_mean']:.2f} ± {scores['per_path_std']:.2f}")
+        print(f"    Fake 逐路径范围:        [{scores['per_path_min']:.2f}, {scores['per_path_max']:.2f}]")
+        print(f"    Real 自检平均 (参考):   {report['real_data']['self_score_mean']:.2f} ± {report['real_data']['self_score_std']:.2f}")
+        print()
+
+        # 各指标表
+        print(f"| 评估维度 | 指标 | 权重 | Baseline (μ±σ) | Fake 批次均分 | 单项评分 |")
+        print(f"| :--- | :--- | :---: | :---: | :---: | :---: |")
+
+        # DDPM MSE
+        real_mse_mean = report['real_data']['ddpm_mse_mean']
+        real_mse_std = report['real_data']['ddpm_mse_std']
+        fake_mse_mean = report['fake_data']['ddpm_mse_mean']
+        fake_mse_std = report['fake_data']['ddpm_mse_std']
+        print(f"| 隐式物理分布 | DDPM MSE (t={report['t_eval']}) | {self.WEIGHTS['ddpm_mse']:.0%} | "
+              f"{real_mse_mean:.4f}±{real_mse_std:.4f} | {fake_mse_mean:.4f}±{fake_mse_std:.4f} | "
+              f"**{batch_comp['ddpm_mse']:.2f}** |")
+
+        # Scalar indicators
+        scalar_keys_labels = [
+            ("sp_skew", "SP500 偏度 (Skewness)", "高阶矩匹配"),
+            ("sp_kurt", "SP500 峰度 (Kurtosis)", "高阶矩匹配"),
+            ("dg_skew", "DGS10 偏度 (Skewness)", "高阶矩匹配"),
+            ("dg_kurt", "DGS10 峰度 (Kurtosis)", "高阶矩匹配"),
+            ("uncond_corr", "无条件相关 (Corr)", "联合分布"),
+            ("tail_corr", "尾部相关 (<-1.5σ)", "极端尾部"),
+        ]
+        for key, label, dim in scalar_keys_labels:
+            b = self.real_baselines[key]
+            # 计算 fake 的该指标均值
+            fake_vals = np.array([s[key] for s in result["fake_stats"]])
+            print(f"| {dim} | {label} | {self.WEIGHTS[key]:.1%} | "
+                  f"{b['mean']:+.4f}±{b['std']:.4f} | "
+                  f"{fake_vals.mean():+.4f}±{fake_vals.std():.4f} | "
+                  f"**{batch_comp[key]:.2f}** |")
+
+        # ACF
+        for acf_key, label, dim in [
+            ("sp_acf", "SP500 |r| ACF", "波动率聚集"),
+            ("dg_acf", "DGS10 |r| ACF", "波动率聚集"),
+        ]:
+            b = self.real_baselines[acf_key]
+            acf_str = ", ".join(f"{v:.3f}" for v in b["mean_acf"][:3]) + "..."
+            print(f"| {dim} | {label} (Lag1-10) | {self.WEIGHTS[acf_key]:.0%} | "
+                  f"MAE σ={b['mae_std']:.4f} | [{acf_str}] | "
+                  f"**{batch_comp[acf_key]:.2f}** |")
+
+        # Wasserstein
+        print(f"| 分布距离 | Joint 1D Wasserstein | {self.WEIGHTS['wasserstein']:.0%} | "
+              f"σ=0.5 (固定) | — | "
+              f"**{batch_comp['wasserstein']:.2f}** |")
+
+        print(f"{'='*80}")
+
+        # Top 5 / Bottom 5
+        sorted_idx = np.argsort(-result["per_path_scores"])
+        print(f"\n  Top 5 路径:")
+        for rank, idx in enumerate(sorted_idx[:5]):
+            print(f"    #{rank+1}: Path {idx}, Score = {result['per_path_scores'][idx]:.2f}")
+        print(f"\n  Bottom 5 路径:")
+        for rank, idx in enumerate(sorted_idx[-5:]):
+            print(f"    #{len(sorted_idx)-4+rank}: Path {idx}, Score = {result['per_path_scores'][idx]:.2f}")
         print()
 
 
+# ============================================================
+#  CLI
+# ============================================================
+
 def main():
-    parser = argparse.ArgumentParser(description="Evaluate simulated financial time series using 1D-DDPM and Stylized Facts")
+    parser = argparse.ArgumentParser(
+        description="Evaluate simulated financial time series using 1D-DDPM and Stylized Facts (v2)"
+    )
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to trained checkpoint (.pt)")
     parser.add_argument("--scaler", type=str, required=True, help="Path to scaler state (.pt)")
     parser.add_argument("--real", type=str, required=True, help="Path to real data CSV")
     parser.add_argument("--fake", type=str, required=True, help="Path to fake/generated data CSV")
-    parser.add_argument("--t-eval", type=int, default=200, help="Timestep for DDPM MSE evaluation (default: 200)")
-    parser.add_argument("--json", type=str, default=None, help="Path to save output JSON report")
-    parser.add_argument("--device", type=str, default=None, help="Device to use (e.g. cuda, cpu)")
-    
+    parser.add_argument("--t-eval", type=int, default=200, help="Timestep for DDPM MSE (default: 200)")
+    parser.add_argument("--json", type=str, default=None, help="Path to save JSON report")
+    parser.add_argument("--device", type=str, default=None, help="Device (cuda/cpu)")
+
     args = parser.parse_args()
-    
+
     scorer = FinancialScorer(
         checkpoint_path=args.checkpoint,
         scaler_path=args.scaler,
         device=args.device
     )
-    
+
     scorer.generate_report(
         real_csv_path=args.real,
         fake_csv_path=args.fake,
