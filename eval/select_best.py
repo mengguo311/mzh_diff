@@ -152,6 +152,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Select top N generated paths based on Fidelity Score v2 and plot"
     )
+    parser.add_argument("--model", type=str, default="unet",
+                        choices=["unet", "dit-s", "dit-b", "dit-l"],
+                        help="Backbone model: unet / dit-s / dit-b / dit-l (default: unet)")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to trained checkpoint (.pt)")
     parser.add_argument("--scaler", type=str, required=True, help="Path to scaler state (.pt)")
     parser.add_argument("--real", type=str, required=True, help="Path to real baseline data CSV")
@@ -167,7 +170,8 @@ def main():
     scorer = FinancialScorer(
         checkpoint_path=args.checkpoint,
         scaler_path=args.scaler,
-        device=args.device
+        device=args.device,
+        model_type=args.model
     )
 
     # 2. Calibrate from real data (auto-detects target seq_len from fake data)

@@ -31,6 +31,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import config
 from dataset import TimeSeriesScaler
 from unet1d import UNet1d
+from dit1d import DiT1D_S, DiT1D_B, DiT1D_L
 from scheduler import DDPMScheduler
 from eval.metrics import calculate_1d_wasserstein
 
@@ -161,13 +162,14 @@ class FinancialScorer:
         "wasserstein":  0.10,
     }
 
-    def __init__(self, checkpoint_path: str, scaler_path: str, device: str = None):
+    def __init__(self, checkpoint_path: str, scaler_path: str, device: str = None, model_type: str = "unet"):
         # 1. 确定运行设备
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.device = torch.device(device)
 
+        self.model_type = model_type
         print(f"[FinancialScorer] Using device: {self.device}")
 
         # 2. 动态读取并应用训练配置
@@ -209,13 +211,25 @@ class FinancialScorer:
             except Exception as e:
                 print(f"  [Warning] Failed to load config.json: {e}")
 
-        # 3. 初始化并加载 1D U-Net 模型
-        print("[FinancialScorer] Loading U-Net model...")
-        self.model = UNet1d(
-            in_channels=self.channels,
-            channel_dims=self.channel_dims,
-            time_emb_dim=self.time_emb_dim
-        ).to(self.device)
+        # 3. 初始化并加载模型 (支持 UNet / DiT)
+        if self.model_type == "unet":
+            print("[FinancialScorer] Loading U-Net model...")
+            self.model = UNet1d(
+                in_channels=self.channels,
+                channel_dims=self.channel_dims,
+                time_emb_dim=self.time_emb_dim
+            ).to(self.device)
+        else:
+            dit_builders = {
+                "dit-s": DiT1D_S,
+                "dit-b": DiT1D_B,
+                "dit-l": DiT1D_L,
+            }
+            print(f"[FinancialScorer] Loading {self.model_type.upper()} model...")
+            self.model = dit_builders[self.model_type](
+                in_channels=self.channels,
+                seq_len=self.seq_len,
+            ).to(self.device)
 
         checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
 
@@ -840,6 +854,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Evaluate simulated financial time series using 1D-DDPM and Stylized Facts (v2)"
     )
+    parser.add_argument("--model", type=str, default="unet",
+                        choices=["unet", "dit-s", "dit-b", "dit-l"],
+                        help="Backbone model: unet / dit-s / dit-b / dit-l (default: unet)")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to trained checkpoint (.pt)")
     parser.add_argument("--scaler", type=str, required=True, help="Path to scaler state (.pt)")
     parser.add_argument("--real", type=str, required=True, help="Path to real data CSV")
@@ -853,7 +870,8 @@ def main():
     scorer = FinancialScorer(
         checkpoint_path=args.checkpoint,
         scaler_path=args.scaler,
-        device=args.device
+        device=args.device,
+        model_type=args.model
     )
 
     scorer.generate_report(

@@ -39,7 +39,8 @@ def _init_ddpm_scorer(args):
     scorer = FinancialScorer(
         checkpoint_path=args.checkpoint,
         scaler_path=args.scaler,
-        device=args.device
+        device=args.device,
+        model_type=getattr(args, 'model', 'unet')
     )
     return scorer
 
@@ -52,7 +53,11 @@ def _ddpm_compute_individual_mses(scorer, x_normalized, t_eval=200, batch_size=6
     B = x_normalized.shape[0]
     L = x_normalized.shape[2]
 
-    multiple = 2 ** len(scorer.channel_dims)
+    # DiT 模型不需要对齐到 2^N，只需要 patch_size 整除
+    if hasattr(scorer, 'channel_dims'):
+        multiple = 2 ** len(scorer.channel_dims)
+    else:
+        multiple = 16  # DiT patch_size
     if L % multiple != 0:
         L_clean = (L // multiple) * multiple
         x_input = x_normalized[:, :, :L_clean]
@@ -103,63 +108,47 @@ def _ddpm_score_paths(scorer, x_norm, x_raw, base_facts, base_mse, t_eval=200):
 
 
 def run_ddpm_evaluation(args):
-    """使用 DDPM 后端执行完整评估流程。"""
-    import torch
-
+    """使用 DDPM 后端 (score.py v2 API) 执行完整评估流程。"""
     scorer = _init_ddpm_scorer(args)
 
+    # ── 1. 从真实数据校准 ──
     print("\n" + "="*60)
-    print(" 1. 计算全局 Real Baseline (DDPM)")
+    print(" 1. 校准真实数据基线 (calibrate_from_real)")
     print("="*60)
-    base_norm, base_raw = scorer.load_and_preprocess_data(args.real, target_seq_len=1260)
-    base_mse = scorer.compute_ddpm_mse(base_norm, t_eval=args.t_eval)
-    base_facts = scorer.compute_stylized_facts(base_raw)
-    print(f"Global Real Baseline MSE: {base_mse:.6f}")
-    print(f"Global Real Baseline Unconditional Corr: {base_facts['uncond_corr']:.4f}")
+    scorer.calibrate_from_real(args.real, t_eval=args.t_eval)
 
+    # ── 2. 获取真实数据逐路径分数 (self-score) ──
     print("\n" + "="*60)
-    print(f" 2. 切分并评估真实数据 (每段 1260 天, 步长 {args.stride})")
+    print(" 2. 计算真实数据逐路径分数 (Real self-score)")
     print("="*60)
-    df_real = pd.read_csv(args.real, index_col=0)
-    df_real = df_real[["sp500", "DGS10"]].ffill().bfill()
-    real_raw_full = df_real.values.astype(np.float32)
+    # 使用 score_batch 对真实数据自身打分
+    real_result = scorer.score_batch(args.real, t_eval=args.t_eval)
+    real_scores = list(real_result["per_path_scores"])
+    print(f"  Real paths: {len(real_scores)}, "
+          f"Mean: {np.mean(real_scores):.2f}, Std: {np.std(real_scores):.2f}")
 
-    n_days = len(real_raw_full)
-    real_chunks = []
-    for start in range(0, n_days - 1260 + 1, args.stride):
-        win = real_raw_full[start : start + 1260]
-        real_chunks.append(win.T)
-
-    x_real_chunks = np.stack(real_chunks, axis=0)
-    x_real_tensor = torch.tensor(x_real_chunks, dtype=torch.float32)
-    x_real_norm = scorer.scaler.transform(x_real_tensor)
-
-    print(f"Total Real Chunks to evaluate: {len(x_real_chunks)}")
-    real_scores = _ddpm_score_paths(
-        scorer, x_real_norm, x_real_chunks, base_facts, base_mse, t_eval=args.t_eval
-    )
-
+    # ── 3. 对 Fake 数据打分 (如果提供) ──
     fake_scores = []
     if args.fake:
         print("\n" + "="*60)
-        print(f" 3. 加载并采样评估生成数据 ({args.fake})")
+        print(f" 3. 评估生成数据 ({args.fake})")
         print("="*60)
-        fake_norm, fake_raw = scorer.load_and_preprocess_data(args.fake)
-        num_paths = fake_raw.shape[0]
+        fake_result = scorer.score_batch(args.fake, t_eval=args.t_eval)
+        all_fake_scores = fake_result["per_path_scores"]
 
-        rng = np.random.RandomState(42)
+        # 采样
+        num_paths = len(all_fake_scores)
         sample_size = min(args.num_fake_samples, num_paths)
-        sampled_indices = rng.choice(num_paths, size=sample_size, replace=False)
-
-        x_fake_norm_sampled = fake_norm[sampled_indices]
-        x_fake_raw_sampled = fake_raw[sampled_indices]
-
-        print(f"Sampled {sample_size}/{num_paths} generated paths for evaluation.")
-        fake_scores = _ddpm_score_paths(
-            scorer, x_fake_norm_sampled, x_fake_raw_sampled, base_facts, base_mse, t_eval=args.t_eval
-        )
+        if sample_size < num_paths:
+            rng = np.random.RandomState(42)
+            indices = rng.choice(num_paths, size=sample_size, replace=False)
+            fake_scores = list(all_fake_scores[indices])
+            print(f"  Sampled {sample_size}/{num_paths} generated paths for plotting.")
+        else:
+            fake_scores = list(all_fake_scores)
 
     return real_scores, fake_scores
+
 
 
 # ============================================================
@@ -384,6 +373,9 @@ def main():
     parser.add_argument("--device", type=str, default=None, help="Device to use (e.g. cuda, cpu)")
 
     # DDPM 专用参数
+    parser.add_argument("--model", type=str, default="unet",
+                        choices=["unet", "dit-s", "dit-b", "dit-l"],
+                        help="[DDPM only] Backbone model (default: unet)")
     parser.add_argument("--checkpoint", type=str, default=None,
                         help="[DDPM only] Path to trained checkpoint (.pt)")
     parser.add_argument("--scaler", type=str, default=None,

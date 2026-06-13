@@ -32,12 +32,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 from dataset import TimeSeriesDataset, TimeSeriesScaler
 from unet1d import UNet1d
+from dit1d import DiT1D_S, DiT1D_B, DiT1D_L
 from scheduler import DDPMScheduler
 from utils import set_seed, EMA
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="1D-DDPM Generation for Financial Time Series")
+    parser.add_argument("--model", type=str, default="unet",
+                        choices=["unet", "dit-s", "dit-b", "dit-l"],
+                        help="骨干网络: unet / dit-s / dit-b / dit-l (default: unet)")
     parser.add_argument("--checkpoint", type=str, required=True,
                         help="训练 checkpoint 路径 (.pt)")
     parser.add_argument("--scaler", type=str, required=True,
@@ -125,11 +129,22 @@ def generate():
 
     # ── 3. 加载模型 ──
     print("\n[Step 2] Loading model...")
-    model = UNet1d(
-        in_channels=channels,
-        channel_dims=channel_dims,
-        time_emb_dim=time_emb_dim
-    ).to(device)
+    if args.model == "unet":
+        model = UNet1d(
+            in_channels=channels,
+            channel_dims=channel_dims,
+            time_emb_dim=time_emb_dim
+        ).to(device)
+    else:
+        model_builders = {
+            "dit-s": DiT1D_S,
+            "dit-b": DiT1D_B,
+            "dit-l": DiT1D_L,
+        }
+        model = model_builders[args.model](
+            in_channels=channels,
+            seq_len=seq_len,
+        ).to(device)
     
     scheduler = DDPMScheduler(
         num_timesteps=T,
@@ -157,7 +172,7 @@ def generate():
     print(f"  Trained epoch: {epoch}")
 
     num_params = sum(p.numel() for p in model.parameters())
-    print(f"  U-Net parameters: {num_params:,}")
+    print(f"  {args.model.upper()} parameters: {num_params:,}")
 
     # ── 3.5 准备初始条件 ──
     if args.cond_mode == "dataset":

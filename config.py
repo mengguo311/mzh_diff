@@ -48,7 +48,7 @@ LEARNING_RATE   = 2e-4
 WEIGHT_DECAY    = 1e-3
 GRAD_CLIP       = 1.0       # 梯度裁剪阈值
 EMA_DECAY       = 0.995     # 指数移动平均衰减率
-CHECKPOINT_EVERY = 500       # 每 N epoch 保存 checkpoint (安全存档)
+CHECKPOINT_EVERY = 8000       # 每 N epoch 保存 checkpoint (安全存档)
 SEED            = 42
 
 # ──────────────────────────────────────────────

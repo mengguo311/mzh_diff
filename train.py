@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 from dataset import TimeSeriesDataset
 from unet1d import UNet1d
+from dit1d import DiT1D, DiT1D_S, DiT1D_B, DiT1D_L
 from scheduler import DDPMScheduler
 from utils import (
     set_seed,
@@ -41,12 +42,17 @@ from utils import (
 
 def parse_args():
     parser = argparse.ArgumentParser(description="1D-DDPM Training for Financial Time Series")
+    parser.add_argument("--model", type=str, default="unet",
+                        choices=["unet", "dit-s", "dit-b", "dit-l"],
+                        help="骨干网络: unet / dit-s / dit-b / dit-l (default: unet)")
     parser.add_argument("--epochs", type=int, default=config.NUM_EPOCHS,
                         help=f"训练轮数 (default: {config.NUM_EPOCHS})")
     parser.add_argument("--batch_size", type=int, default=config.BATCH_SIZE,
                         help=f"批大小 (default: {config.BATCH_SIZE})")
     parser.add_argument("--lr", type=float, default=config.LEARNING_RATE,
                         help=f"学习率 (default: {config.LEARNING_RATE})")
+    parser.add_argument("--warmup", type=int, default=0,
+                        help="学习率 Warmup 步数 (default: 0, DiT 建议 200)")
     parser.add_argument("--run_name", type=str, default=None,
                         help="运行名称（默认自动生成时间戳）")
     parser.add_argument("--resume", type=str, default=None,
@@ -66,10 +72,12 @@ def train():
     print("=" * 60)
     print("  1D-DDPM Training Pipeline")
     print("=" * 60)
+    print(f"  Backbone:   {args.model}")
     print(f"  Device:     {device}")
     print(f"  Epochs:     {args.epochs}")
     print(f"  Batch size: {args.batch_size}")
     print(f"  LR:         {args.lr}")
+    print(f"  Warmup:     {args.warmup} epochs")
     print(f"  T:          {config.T}")
     print("=" * 60)
 
@@ -91,11 +99,17 @@ def train():
 
     # ── 2. 模型 ──
     print("\n[Phase 2] Building model...")
-    model = UNet1d().to(device)
+    model_builders = {
+        "unet": lambda: UNet1d(),
+        "dit-s": lambda: DiT1D_S(),
+        "dit-b": lambda: DiT1D_B(),
+        "dit-l": lambda: DiT1D_L(),
+    }
+    model = model_builders[args.model]().to(device)
     scheduler = DDPMScheduler().to(device)
 
     num_params = sum(p.numel() for p in model.parameters())
-    print(f"  U-Net parameters: {num_params:,}")
+    print(f"  {args.model.upper()} parameters: {num_params:,}")
 
     # ── 3. 优化器 & 调度器 ──
     optimizer = torch.optim.AdamW(
@@ -105,7 +119,7 @@ def train():
     )
     lr_scheduler = CosineAnnealingLR(
         optimizer,
-        T_max=args.epochs,
+        T_max=max(1, args.epochs - args.warmup),
         eta_min=1e-6,
     )
 
@@ -186,8 +200,14 @@ def train():
 
             epoch_loss += loss.item()
 
-        # ── 学习率衰减 ──
-        lr_scheduler.step()
+        # ── 学习率调度 (含 Warmup) ──
+        if epoch < args.warmup:
+            # 线性 Warmup: lr 从 0 线性增长到 target lr
+            warmup_factor = (epoch + 1) / args.warmup
+            for pg in optimizer.param_groups:
+                pg["lr"] = args.lr * warmup_factor
+        else:
+            lr_scheduler.step()
 
         # ── Epoch 统计 ──
         avg_loss = epoch_loss / len(dataloader)
