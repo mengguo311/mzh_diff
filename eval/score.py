@@ -148,18 +148,25 @@ class FinancialScorer:
            使用分位数归一化 (DDPM MSE) + 自适应指数衰减 (Stylized Facts) 评分。
     """
 
-    # 权重配置
+    # 权重配置 (v11 重设计, 之和必须 = 1.0)
+    #
+    # ⚠️ `ddpm_mse` 是【自指诊断 self-referential diagnostic】:它衡量样本到
+    #    "模型自身(过平滑)流形"的 ε-预测距离,而非到【真实数据】的距离。已实证它
+    #    会惩罚比训练模型更真实的候选(v10 重训路径最真实却被 ddpm_mse 压低总分)。
+    #    v11 把权重从 0.20 → 0.05,仅保留为参考诊断;释放的 0.15 重分配给纯
+    #    data-vs-data 指标(矩/ACF/Wasserstein)。判定生成质量请勿用本项总分把关,
+    #    改用 wasserstein/峰度/diagnostics.py/非自指鉴别器(c2st/signature, 见 --forensic)。
     WEIGHTS = {
-        "ddpm_mse":     0.20,
-        "sp_skew":      0.075,
-        "sp_kurt":      0.075,
-        "dg_skew":      0.05,
-        "dg_kurt":      0.05,
-        "sp_acf":       0.10,
-        "dg_acf":       0.10,
-        "uncond_corr":  0.15,
+        "ddpm_mse":     0.05,   # ⚠ self-referential diagnostic (v11: 0.20→0.05, 勿作主判据)
+        "sp_skew":      0.08,
+        "sp_kurt":      0.10,
+        "dg_skew":      0.07,
+        "dg_kurt":      0.13,
+        "sp_acf":       0.12,
+        "dg_acf":       0.12,
+        "uncond_corr":  0.10,
         "tail_corr":    0.10,
-        "wasserstein":  0.10,
+        "wasserstein":  0.13,
     }
 
     def __init__(self, checkpoint_path: str, scaler_path: str, device: str = None, model_type: str = "unet"):
@@ -707,11 +714,23 @@ class FinancialScorer:
 
         # 4. 真实数据自检分数（验证校准是否合理）
         print(f"\n[Self-Check] Computing real data self-scores...")
+        # 自检 Wasserstein:旧实现硬编码 100 分(自身对自身距离=0)属【自评作弊】,会把真实
+        # 基线虚高到不可比。改为真实数据【两半互算】,给出有限样本下的采样噪声地板
+        # (real-vs-real Wasserstein floor),与 fake 走同一 _compute_wasserstein_score 口径。
+        r_all = self._real_norm.to(self.device)
+        n_all = r_all.shape[0]
+        perm = np.random.RandomState(0).permutation(n_all)
+        n_half = n_all // 2
+        idx_a = torch.from_numpy(perm[:n_half].copy()).long().to(self.device)
+        idx_b = torch.from_numpy(perm[n_half:2 * n_half].copy()).long().to(self.device)
+        self_wass = calculate_1d_wasserstein(r_all[idx_a], r_all[idx_b])
+        real_self_wass_score = float(max(0.0, 100.0 * np.exp(-self_wass / 0.5)))
+        print(f"  Real-vs-real Wasserstein 自检地板: dist={self_wass:.5f} → "
+              f"score={real_self_wass_score:.2f} (旧实现硬编码 100, 已修正)")
         real_self_scores = np.zeros(len(self.real_stats_list))
         for i in range(len(self.real_stats_list)):
             total, _ = self.score_single_path(self.real_stats_list[i], self.real_mse_dist[i])
-            # 自检时 Wasserstein = 0（自身对自身距离为 0 → 得 100 分）
-            total += 100.0 * self.WEIGHTS["wasserstein"]
+            total += real_self_wass_score * self.WEIGHTS["wasserstein"]
             real_self_scores[i] = total
 
         print(f"  Real self-score: mean={real_self_scores.mean():.2f}, "
@@ -846,6 +865,78 @@ class FinancialScorer:
         print()
 
 
+# 权重归一化自检: 之和必须严格 = 1.0 (防止后续编辑破坏总分尺度)
+assert abs(sum(FinancialScorer.WEIGHTS.values()) - 1.0) < 1e-9, \
+    f"WEIGHTS 之和必须 = 1.0, 当前 = {sum(FinancialScorer.WEIGHTS.values()):.6f}"
+
+
+# ============================================================
+#  非自指取证 Headline (Forensic) —— 独立于 fidelity 总分
+# ============================================================
+
+def forensic_headline(real_csv: str, fake_csv: str, depth: int = 3) -> dict:
+    """
+    独立的【非自指 (data-vs-data) 取证 headline】:复用已验证的两个鉴别器
+      - eval/c2st.py     : feature-space C2ST (检出 acc/auc 越接近 0.5/标定越真实)
+      - eval/signature.py: path-signature Sig-MMD 置换检验 (p 越大越像真; p<0.05 判假)
+    **不混入 fidelity 总分**,仅作并列汇报,规避 ddpm_mse 自指缺陷。
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import c2st as _c2st
+    import signature as _sig
+    from diagnostics import load_changes as _load, rolling_std as _rstd
+
+    L = _load(fake_csv).shape[-1]
+    real = _load(real_csv, target_seq_len=L)
+    fake = _load(fake_csv)
+
+    # ── C2ST (feature-space) ──
+    vol_thr = float(np.median(_rstd(real[:, 0, :], _c2st.VOL_WINDOW)))
+    Xr = _c2st.featurize(real, vol_thr)
+    Xf = _c2st.featurize(fake, vol_thr)
+    rng = np.random.default_rng(0)
+    perm = rng.permutation(len(Xr)); half = len(perm) // 2
+    c2_cal = _c2st.c2st(Xr[perm[:half]], Xr[perm[half:]])
+    c2_det = _c2st.c2st(Xr, Xf)
+
+    # ── Sig-MMD (path signature) ──
+    scale = np.array([real[:, 0, :].std(), real[:, 1, :].std()]) + 1e-12
+    A1 = _sig.sig_features(real, scale, 300, 2, 200, depth, seed=1)
+    A2 = _sig.sig_features(real, scale, 300, 2, 200, depth, seed=2)
+    Bf = _sig.sig_features(fake, scale, 300, 2, 200, depth, seed=3)
+    sig_cal = _sig.sig_mmd_test(A1, A2, n_perm=300, seed=10)
+    sig_det = _sig.sig_mmd_test(A1, Bf, n_perm=300, seed=11)
+
+    headline = {
+        "note": "非自指 data-vs-data 取证, 独立于 fidelity 总分",
+        "c2st": {
+            "calib_real_vs_real_acc": c2_cal["test_acc"],
+            "detect_acc": c2_det["test_acc"],
+            "detect_auc": c2_det["auc"],
+            "detect_approx_p": c2_det["approx_p"],
+        },
+        "sig_mmd": {
+            "calib_real_vs_real_p": sig_cal["p_value"],
+            "detect_mmd2": sig_det["mmd2"],
+            "detect_p": sig_det["p_value"],
+        },
+    }
+
+    print(f"\n{'='*80}")
+    print(f"  【 非自指取证 Headline (Forensic) —— 独立于 fidelity 总分 】")
+    print(f"{'='*80}")
+    print(f"  C2ST    检出 acc={c2_det['test_acc']:.3f}  auc={c2_det['auc']:.3f}  p={c2_det['approx_p']:.2e}"
+          f"   | 标定 real-vs-real acc={c2_cal['test_acc']:.3f}")
+    print(f"          → acc 越接近标定(≈0.5) 越真实;越接近 1.0 越易被识破")
+    print(f"  Sig-MMD 检出 p={sig_det['p_value']:.3f}  (MMD²={sig_det['mmd2']:.3e})"
+          f"   | 标定 real-vs-real p={sig_cal['p_value']:.3f}")
+    print(f"          → p 越大越像真;p<0.05 判为假")
+    print(f"{'='*80}")
+    return headline
+
+
 # ============================================================
 #  CLI
 # ============================================================
@@ -864,6 +955,8 @@ def main():
     parser.add_argument("--t-eval", type=int, default=200, help="Timestep for DDPM MSE (default: 200)")
     parser.add_argument("--json", type=str, default=None, help="Path to save JSON report")
     parser.add_argument("--device", type=str, default=None, help="Device (cuda/cpu)")
+    parser.add_argument("--forensic", action="store_true",
+                        help="额外输出独立的【非自指取证 headline】(C2ST + Sig-MMD), 不混入 fidelity 总分")
 
     args = parser.parse_args()
 
@@ -880,6 +973,20 @@ def main():
         t_eval=args.t_eval,
         json_output_path=args.json
     )
+
+    # 独立的非自指取证 headline (不混入 fidelity 总分)
+    if args.forensic:
+        try:
+            fh = forensic_headline(args.real, args.fake)
+            if args.json:
+                fpath = os.path.splitext(args.json)[0] + "_forensic.json"
+                with open(fpath, "w", encoding="utf-8") as f:
+                    json.dump(fh, f, indent=2, ensure_ascii=False)
+                print(f"[forensic] headline 已保存: {fpath}")
+        except Exception as e:
+            import traceback
+            print(f"[forensic] 跳过 (出错): {e}")
+            traceback.print_exc()
 
 
 if __name__ == "__main__":

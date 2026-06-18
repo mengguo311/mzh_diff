@@ -83,6 +83,7 @@ def train():
     print(f"  CLIP_RANGE: {config.CLIP_RANGE}")
     print(f"  min-SNR:    {config.USE_MIN_SNR} (γ={config.MIN_SNR_GAMMA})")
     print(f"  aux-loss:   {config.USE_AUX_LOSS} (acf={config.AUX_ACF_WEIGHT}, rough={config.AUX_ROUGH_WEIGHT}, lag={config.AUX_ACF_MAX_LAG})")
+    print(f"  sig-mmd:    {config.USE_SIG_MMD} (w={config.SIG_MMD_WEIGHT}, depth={config.SIG_DEPTH}, Lsub={config.SIG_SUB_LEN}, Nsub={config.SIG_N_SUB})")
     print("=" * 60)
 
     # ── 1. 数据管道 ──
@@ -162,6 +163,7 @@ def train():
         epoch_mse = 0.0
         epoch_acf = 0.0
         epoch_rough = 0.0
+        epoch_sig = 0.0
         epoch_start = time.time()
 
         for batch_idx, (x0, c) in enumerate(dataloader):
@@ -195,22 +197,32 @@ def train():
             else:
                 loss_mse = mse_ps.mean()
 
-            # ── 辅助损失: stylized-fact (波动聚集 + roughness)，仅低噪声步、按 ᾱ_t 加权 ──
+            # ── 辅助损失: stylized-fact (波动聚集 + roughness) + 可微 Sig-MMD，
+            #    仅低噪声步 (ᾱ_t 可靠), x̂₀ 反演一次供两者共用 ──
             loss_acf = xt.new_zeros(())
             loss_rough = xt.new_zeros(())
-            if config.USE_AUX_LOSS:
+            loss_sig = xt.new_zeros(())
+            if config.USE_AUX_LOSS or config.USE_SIG_MMD:
                 x0_hat = losses.recover_x0(scheduler, xt, t, noise_pred)
                 abar = scheduler.alphas_cumprod.gather(0, t.long())          # (B,) 可靠度
                 reliable = abar > config.AUX_ABAR_MIN
                 if reliable.any():
                     clip = config.CLIP_RANGE * 3.0
                     x0h = x0_hat[reliable].clamp(-clip, clip)
-                    acf_l, rough_l = losses.stylized_aux(x0h, x0[reliable], config.AUX_ACF_MAX_LAG)
-                    wabar = abar[reliable]
-                    loss_acf = (wabar * acf_l).mean() * config.AUX_ACF_WEIGHT
-                    loss_rough = (wabar * rough_l).mean() * config.AUX_ROUGH_WEIGHT
+                    x0r = x0[reliable]
+                    if config.USE_AUX_LOSS:
+                        acf_l, rough_l = losses.stylized_aux(x0h, x0r, config.AUX_ACF_MAX_LAG)
+                        wabar = abar[reliable]
+                        loss_acf = (wabar * acf_l).mean() * config.AUX_ACF_WEIGHT
+                        loss_rough = (wabar * rough_l).mean() * config.AUX_ROUGH_WEIGHT
+                    if config.USE_SIG_MMD and int(reliable.sum()) >= 4:
+                        mmd2 = losses.sig_mmd_loss(
+                            x0h, x0r,
+                            n_sub=config.SIG_N_SUB, l_sub=config.SIG_SUB_LEN,
+                        )
+                        loss_sig = config.SIG_MMD_WEIGHT * mmd2
 
-            loss = loss_mse + loss_acf + loss_rough
+            loss = loss_mse + loss_acf + loss_rough + loss_sig
 
             # ── 反向传播 ──
             optimizer.zero_grad()
@@ -231,6 +243,7 @@ def train():
             epoch_mse += loss_mse.item()
             epoch_acf += float(loss_acf)
             epoch_rough += float(loss_rough)
+            epoch_sig += float(loss_sig)
 
         # ── 学习率调度 (含 Warmup) ──
         if epoch < args.warmup:
@@ -253,7 +266,7 @@ def train():
             print(
                 f"  Epoch {epoch:>4d}/{args.epochs}  |  "
                 f"Loss: {avg_loss:.6f}  "
-                f"(mse {epoch_mse/nb:.5f} acf {epoch_acf/nb:.5f} rgh {epoch_rough/nb:.5f})  |  "
+                f"(mse {epoch_mse/nb:.5f} acf {epoch_acf/nb:.5f} rgh {epoch_rough/nb:.5f} sig {epoch_sig/nb:.5f})  |  "
                 f"LR: {current_lr:.2e}  |  "
                 f"Time: {epoch_time:.2f}s"
             )

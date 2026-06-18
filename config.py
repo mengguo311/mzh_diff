@@ -48,7 +48,7 @@ LEARNING_RATE   = 2e-4
 WEIGHT_DECAY    = 1e-3
 GRAD_CLIP       = 1.0       # 梯度裁剪阈值
 EMA_DECAY       = 0.995     # 指数移动平均衰减率
-CHECKPOINT_EVERY = 8000       # 每 N epoch 保存 checkpoint (安全存档)
+CHECKPOINT_EVERY = 2000       # 每 N epoch 保存 checkpoint (v11 验证训练: 2000, 12h 内多存档)
 SEED            = 42
 
 # ──────────────────────────────────────────────
@@ -78,6 +78,18 @@ AUX_ACF_WEIGHT   = 0.05      # |r| ACF L1 权重
 AUX_ROUGH_WEIGHT = 0.05      # 二阶差分能量相对差距权重
 AUX_ACF_MAX_LAG  = 5         # ACF 滞后阶数
 AUX_ABAR_MIN     = 0.1       # 仅对 ᾱ_t > 此阈值 (低噪声步) 施加辅助损失，保证 x̂₀ 可靠
+
+# ──────────────────────────────────────────────
+# v11 训练损失增强: 可微 Sig-MMD 辅助损失  —— 见 losses.sig_mmd_loss
+# ──────────────────────────────────────────────
+# 路径签名是随机过程"律"的可微指纹: 同一散度既做训练损失又做假数据取证打分(签名脊梁)。
+# 在随机短子窗上对 x̂₀ 与真实 x₀ 的 depth-2 time-augmented 签名分布做无偏 MMD²。
+# 与 stylized acf+rough 互补, 复用 AUX_ABAR_MIN 门控 (仅低噪声步, x̂₀ 可靠)。
+USE_SIG_MMD      = True      # 开/关 可微 Sig-MMD 辅助损失
+SIG_MMD_WEIGHT   = 0.05      # MMD² 的损失权重 (从小起步)
+SIG_DEPTH        = 2         # 截断签名深度 (向量化实现固定 = 2)
+SIG_SUB_LEN      = 128       # 子窗长度 Lsub
+SIG_N_SUB        = 2         # 每步随机取的子窗个数 K
 
 # ──────────────────────────────────────────────
 # Device Auto-Detection
