@@ -1,6 +1,8 @@
 # 仓库目录结构 (STRUCTURE.md)
 
 > 金融时间序列扩散模型项目。本文件说明各目录职责与"活跃/归档"分区。
+> **深度分包待办**(eval 分 tools/results、源码分包、output/outputs 改名)见 [`REORG_TODO.md`](REORG_TODO.md),
+> 需在 v11 评估流水线跑完、无运行进程时执行(因需改文件内 import/路径)。
 > 真实训练数据在 `/home/u00134/data/train_sp500_us10y.csv`(**不在**本仓库)。`*.pt`/`*.csv` 已 gitignore。
 
 ## 顶层
