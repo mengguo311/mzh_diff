@@ -38,6 +38,7 @@ from utils import (
     save_checkpoint,
     load_checkpoint,
 )
+import losses
 
 
 def parse_args():
@@ -79,6 +80,9 @@ def train():
     print(f"  LR:         {args.lr}")
     print(f"  Warmup:     {args.warmup} epochs")
     print(f"  T:          {config.T}")
+    print(f"  CLIP_RANGE: {config.CLIP_RANGE}")
+    print(f"  min-SNR:    {config.USE_MIN_SNR} (γ={config.MIN_SNR_GAMMA})")
+    print(f"  aux-loss:   {config.USE_AUX_LOSS} (acf={config.AUX_ACF_WEIGHT}, rough={config.AUX_ROUGH_WEIGHT}, lag={config.AUX_ACF_MAX_LAG})")
     print("=" * 60)
 
     # ── 1. 数据管道 ──
@@ -155,6 +159,9 @@ def train():
 
     for epoch in range(start_epoch, args.epochs):
         epoch_loss = 0.0
+        epoch_mse = 0.0
+        epoch_acf = 0.0
+        epoch_rough = 0.0
         epoch_start = time.time()
 
         for batch_idx, (x0, c) in enumerate(dataloader):
@@ -180,8 +187,30 @@ def train():
             # ── 预测噪声 ──
             noise_pred = model(xt, t, c_masked)
 
-            # ── MSE Loss ──
-            loss = F.mse_loss(noise_pred, noise)
+            # ── 主损失: (min-SNR 加权的) ε-MSE ──
+            mse_ps = F.mse_loss(noise_pred, noise, reduction="none").mean(dim=[1, 2])  # (B,)
+            if config.USE_MIN_SNR:
+                w_snr = losses.min_snr_weight(scheduler, t, config.MIN_SNR_GAMMA)
+                loss_mse = (w_snr * mse_ps).mean()
+            else:
+                loss_mse = mse_ps.mean()
+
+            # ── 辅助损失: stylized-fact (波动聚集 + roughness)，仅低噪声步、按 ᾱ_t 加权 ──
+            loss_acf = xt.new_zeros(())
+            loss_rough = xt.new_zeros(())
+            if config.USE_AUX_LOSS:
+                x0_hat = losses.recover_x0(scheduler, xt, t, noise_pred)
+                abar = scheduler.alphas_cumprod.gather(0, t.long())          # (B,) 可靠度
+                reliable = abar > config.AUX_ABAR_MIN
+                if reliable.any():
+                    clip = config.CLIP_RANGE * 3.0
+                    x0h = x0_hat[reliable].clamp(-clip, clip)
+                    acf_l, rough_l = losses.stylized_aux(x0h, x0[reliable], config.AUX_ACF_MAX_LAG)
+                    wabar = abar[reliable]
+                    loss_acf = (wabar * acf_l).mean() * config.AUX_ACF_WEIGHT
+                    loss_rough = (wabar * rough_l).mean() * config.AUX_ROUGH_WEIGHT
+
+            loss = loss_mse + loss_acf + loss_rough
 
             # ── 反向传播 ──
             optimizer.zero_grad()
@@ -199,6 +228,9 @@ def train():
             ema.update(model)
 
             epoch_loss += loss.item()
+            epoch_mse += loss_mse.item()
+            epoch_acf += float(loss_acf)
+            epoch_rough += float(loss_rough)
 
         # ── 学习率调度 (含 Warmup) ──
         if epoch < args.warmup:
@@ -217,9 +249,11 @@ def train():
 
         # ── 日志输出 ──
         if epoch % 10 == 0 or epoch == args.epochs - 1:
+            nb = len(dataloader)
             print(
                 f"  Epoch {epoch:>4d}/{args.epochs}  |  "
-                f"Loss: {avg_loss:.6f}  |  "
+                f"Loss: {avg_loss:.6f}  "
+                f"(mse {epoch_mse/nb:.5f} acf {epoch_acf/nb:.5f} rgh {epoch_rough/nb:.5f})  |  "
                 f"LR: {current_lr:.2e}  |  "
                 f"Time: {epoch_time:.2f}s"
             )

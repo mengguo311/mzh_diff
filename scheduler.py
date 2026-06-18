@@ -221,10 +221,13 @@ class DDPMScheduler(nn.Module):
         x_T: torch.Tensor = None,
         num_inference_steps: int = 50,
         guidance_scale: float = 3.0,
+        eta: float = 0.0,
         verbose: bool = True,
     ) -> torch.Tensor:
         """
-        确定性 DDIM 快速采样循环 (eta = 0)，结合 Classifier-Free Guidance (CFG)。
+        广义 DDIM 快速采样循环，结合 Classifier-Free Guidance (CFG)。
+        eta=0 为确定性 DDIM (偏平滑)；eta→1 注入随机性，接近 DDPM ancestral
+        (恢复高频纹理 / 波动爆发，缓解过平滑)。
         
         Args:
             model:               U-Net 噪声预测模型
@@ -233,6 +236,7 @@ class DDPMScheduler(nn.Module):
             x_T:                 初始纯噪声张量，若提供则忽略 shape
             num_inference_steps: 快速采样步数 (例如 50)
             guidance_scale:      引导权重 w (例如 3.0 ~ 5.0)，w=1.0 为纯有条件，w=0.0 为纯无条件
+            eta:                 DDIM 随机性 (0=确定性, 1≈DDPM)，越大注入越多噪声/纹理
             verbose:             是否打印进度
         Returns:
             x_0:                 (B, 2, seq_len) — 生成的干净数据
@@ -283,11 +287,21 @@ class DDPMScheduler(nn.Module):
             # 预测干净样本 x_0
             x0_pred = (x - torch.sqrt(1.0 - alpha_bar_curr) * eps_pred) / torch.sqrt(alpha_bar_curr)
 
-            # 计算指向 x_t 的确定性方向
-            dir_xt = torch.sqrt(1.0 - alpha_bar_prev) * eps_pred
+            # DDIM 随机性: σ_t = eta · √((1-ᾱ_prev)/(1-ᾱ_curr)) · √(1 - ᾱ_curr/ᾱ_prev)
+            # eta=0 → σ=0 确定性 (现状); eta→1 → 接近 DDPM ancestral
+            if eta > 0.0 and t_prev_val >= 0:
+                sigma = eta * torch.sqrt((1.0 - alpha_bar_prev) / (1.0 - alpha_bar_curr)) \
+                            * torch.sqrt(1.0 - alpha_bar_curr / alpha_bar_prev)
+            else:
+                sigma = torch.zeros_like(alpha_bar_prev)
 
-            # 确定性更新得到 x_{t-1} (eta = 0)
+            # 指向 x_t 的方向项 (扣除随机项方差，保证总方差守恒)
+            dir_xt = torch.sqrt(torch.clamp(1.0 - alpha_bar_prev - sigma ** 2, min=0.0)) * eps_pred
+
+            # 更新得到 x_{t-1}
             x = torch.sqrt(alpha_bar_prev) * x0_pred + dir_xt
+            if eta > 0.0 and t_prev_val >= 0:
+                x = x + sigma * torch.randn_like(x)
 
             if verbose and (i % max(1, num_inference_steps // 10) == 0 or i == len(times) - 1 or i == 1):
                 print(f"  [DDIM Scheduler] Step {num_inference_steps - i + 1:>2d}/{num_inference_steps} "

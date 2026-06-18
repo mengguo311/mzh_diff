@@ -58,10 +58,12 @@ def parse_args():
                         help="使用 EMA 权重生成 (default: True)")
     parser.add_argument("--no_ema", dest="use_ema", action="store_false",
                         help="使用原始模型权重生成")
-    parser.add_argument("--num_inference_steps", type=int, default=50,
-                        help="DDIM 快速采样步数 (default: 50)")
-    parser.add_argument("--guidance_scale", "-w", type=float, default=3.0,
-                        help="Classifier-Free Guidance 引导权重 w (default: 3.0)")
+    parser.add_argument("--num_inference_steps", type=int, default=config.GEN_NUM_STEPS,
+                        help=f"DDIM 快速采样步数 (default: {config.GEN_NUM_STEPS})")
+    parser.add_argument("--guidance_scale", "-w", type=float, default=config.GEN_GUIDANCE_SCALE,
+                        help=f"Classifier-Free Guidance 引导权重 w (default: {config.GEN_GUIDANCE_SCALE})")
+    parser.add_argument("--eta", type=float, default=config.GEN_ETA,
+                        help=f"DDIM 随机性 eta (0=确定性, 1≈DDPM; 注入纹理/波动, default: {config.GEN_ETA})")
     parser.add_argument("--cond_mode", type=str, default="dataset", choices=["dataset", "zero"],
                         help="条件生成模式 (default: dataset)")
     return parser.parse_args()
@@ -217,6 +219,7 @@ def generate():
                 x_T=x_T,
                 num_inference_steps=args.num_inference_steps,
                 guidance_scale=args.guidance_scale,
+                eta=args.eta,
                 verbose=True
             )
 
