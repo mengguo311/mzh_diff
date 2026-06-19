@@ -1,0 +1,29 @@
+{
+  "L": 2048,
+  "n_real": 2538,
+  "features": 24,
+  "calibration": {
+    "real_vs_real": {
+      "test_acc": 0.494750656167979,
+      "auc": 0.4872451967126157,
+      "n_test": 762,
+      "approx_p": 0.6140189804763148
+    }
+  },
+  "detect": {
+    "v11": {
+      "test_acc": 0.7688772160210111,
+      "auc": 0.8553119427745645,
+      "n_test": 1523,
+      "approx_p": 0.0,
+      "fake_vs_fake_calib_acc": 0.494140625
+    },
+    "v10_retrained": {
+      "test_acc": 0.7504924491135916,
+      "auc": 0.8462687236368779,
+      "n_test": 1523,
+      "approx_p": 0.0,
+      "fake_vs_fake_calib_acc": 0.4967447916666667
+    }
+  }
+}

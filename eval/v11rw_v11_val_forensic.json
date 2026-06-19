@@ -1,0 +1,14 @@
+{
+  "note": "非自指 data-vs-data 取证, 独立于 fidelity 总分",
+  "c2st": {
+    "calib_real_vs_real_acc": 0.494750656167979,
+    "detect_acc": 0.7688772160210111,
+    "detect_auc": 0.8553119427745645,
+    "detect_approx_p": 0.0
+  },
+  "sig_mmd": {
+    "calib_real_vs_real_p": 0.32558139534883723,
+    "detect_mmd2": 0.004549253120216146,
+    "detect_p": 0.0033222591362126247
+  }
+}
