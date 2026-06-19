@@ -13,10 +13,10 @@ from pathlib import Path
 import shutil
 
 # Ensure src directory is in path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from eval.score import FinancialScorer
-from eval.eval_distribution import _ddpm_compute_individual_mses, _pca_per_path_scores
+from eval.tools.eval_distribution import _ddpm_compute_individual_mses, _pca_per_path_scores
 from eval.score2.advanced_scorer import PCAWassersteinScorer, load_real_data
 
 

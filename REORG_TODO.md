@@ -31,20 +31,17 @@ eval/
 └── results/    # ← 新增:所有评估结果 *.json
 ```
 
-### ☐ 1A. 建 `eval/tools/` 并搬入 8 个工具
-- [ ] `mkdir -p eval/tools && git mv eval/{plot_compare,plot_detectors,aggregate,select_best,show1,eval_distribution,score_mixed,price_table_converter}.py eval/tools/`
-- [ ] 改 3 个含 `sys.path.insert` 工具的路径深度(搬深一层,`parent.parent` → `parents[2]` 才是 `~/src`):
-  - `eval/tools/select_best.py:20`、`eval/tools/eval_distribution.py:23`、`eval/tools/score_mixed.py:16`
-  - 把 `str(Path(__file__).resolve().parent.parent)` 改成 `str(Path(__file__).resolve().parents[2])`
-- [ ] 改 `eval/tools/score_mixed.py` 的跨模块 import(`eval_distribution` 已搬进 tools/):
-  - `from eval.eval_distribution import ...` → `from eval.tools.eval_distribution import ...`
-  - (`from eval.score import ...` 与 `from eval.score2.advanced_scorer import ...` **不变**,score/score2 仍在 eval/)
-- [ ] 改 `eval/run_sweep.sh:55`:`python3 eval/aggregate.py` → `python3 eval/tools/aggregate.py`
-- [ ] 改 `~/CLAUDE.md:38` 关键文件表:`aggregate.py / plot_compare.py / plot_detectors.py` → 加 `tools/` 前缀。
-- [ ] 冒烟:`conda run -n ts_diffusion python -c "import ast,glob;[ast.parse(open(f).read()) for f in glob.glob('eval/tools/*.py')];print('syntax OK')"`
-  且 `python eval/tools/select_best.py --help`、`python eval/tools/score_mixed.py --help` 能正常打印(import 不报错)。
+### ✅ 1A. 建 `eval/tools/` 并搬入 8 个工具 —— 已完成 (2026-06-20)
+- [x] `git mv` 8 个工具到 `eval/tools/`(plot_compare/plot_detectors/aggregate/select_best/show1/eval_distribution/score_mixed/price_table_converter)
+- [x] 修 3 个 `sys.path` 深度:`parent.parent` → `parents[2]`(select_best/eval_distribution/score_mixed)
+- [x] 修 `score_mixed`:`from eval.eval_distribution` → `from eval.tools.eval_distribution`(score/score2 不变)
+- [x] 修 `eval/run_sweep.sh:55` → `eval/tools/aggregate.py`;更新 `~/CLAUDE.md` 关键文件表
+- [x] 冒烟全绿:8 工具语法 OK;6 个核心取证模块 import OK;移动后的工具(含跨模块 score_mixed)import OK;`verdict_v11.py` 端到端 OK
 
-### ☐ 1B. 建 `eval/results/` 并搬入所有 JSON(可选,但更整洁)
+### ⏸ 1B. 建 `eval/results/` 并搬入所有 JSON —— **暂缓**(引用面大、风险>收益)
+> 复查发现 `eval/*.json` 被多处硬编码/glob 引用:`tools/aggregate.py`(glob `eval/score_sw_*.json`/`eval/diag_sw_*.json`)、
+> `tools/plot_compare.py`/`tools/plot_detectors.py`(多个 `eval/*.json`)、`verdict_v11.py`、`auto_eval_v11.sh`、`rescore_v11.sh`。
+> 全改风险高、收益(eval/ 根去 json 杂)有限,**暂不做**;若要做,按下列改点一次性改全:
 - [ ] `mkdir -p eval/results && git mv eval/*.json eval/results/`
 - [ ] 改 `eval/verdict_v11.py`:`HERE` 拼接处加 `results/` 子目录
   (`os.path.join(HERE, p)` → `os.path.join(HERE, "results", p)`)。

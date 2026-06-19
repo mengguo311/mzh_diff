@@ -41,9 +41,10 @@
   `score.py`(10项 fidelity;`ddpm_mse` 已降权 0.05 并标注自指)、`c2st.py`/`signature.py`(非自指鉴别器)、
   `diagnostics.py`(roughness/regime/PSD)、`metrics.py`(Wasserstein)、`verdict_v11.py`(步骤F判据)
 - **v11 流水线脚本**:`auto_eval_v11.sh`(训练后自动评估,**运行中轮询**)、`rescore_v11.sh`
-- **分析/绘图工具**:`plot_compare.py` `plot_detectors.py` `aggregate.py` `select_best.py` `show1.py`
-  `eval_distribution.py` `score_mixed.py` `price_table_converter.py` `run_sweep.sh`
-  (彼此有 `eval.score`/`eval.eval_distribution`/`eval.score2` 交叉依赖,若要归类到子目录需一并改 import)
+- **`tools/` 分析/绘图工具**(v11 已归入子目录):`plot_compare.py` `plot_detectors.py` `aggregate.py`
+  `select_best.py` `show1.py` `eval_distribution.py` `score_mixed.py` `price_table_converter.py`
+  (彼此有 `eval.score`/`eval.tools.eval_distribution`/`eval.score2` 交叉依赖;`run_sweep.sh` 仍在 eval/ 顶层)
+  → 这些工具读写 `eval/*.json` 与 `outputs/figures/` 均为 CWD 相对路径,搬入 `tools/` 不受影响。
 - `score2/` — 高级打分子包(`advanced_scorer.py`,被 `score_mixed.py` 引用)
 - `docs/` — 改进方案与路线图(`v11_task_handoff.md` 等)
 - `*.json` — 评估结果(`v11rw_*` / `diag_*` / `c2st_*` / `signature_*`)

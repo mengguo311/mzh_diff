@@ -52,4 +52,4 @@ done
 
 echo ""
 echo "================== 汇总 =================="
-python3 eval/aggregate.py
+python3 eval/tools/aggregate.py

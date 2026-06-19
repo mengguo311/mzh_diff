@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 # 确保 src 目录在 python 路径中
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 # ============================================================
