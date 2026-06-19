@@ -45,10 +45,10 @@ BETA_END        = 0.02      # β_T
 BATCH_SIZE      = 64
 NUM_EPOCHS      = 5000
 LEARNING_RATE   = 2e-4
-WEIGHT_DECAY    = 1e-3
+WEIGHT_DECAY    = 1e-2       # v12 抗记忆化: 1e-3→1e-2 (10x 正则, 配合 DiT-S 缩容对抗数据稀缺记忆化)
 GRAD_CLIP       = 1.0       # 梯度裁剪阈值
 EMA_DECAY       = 0.995     # 指数移动平均衰减率
-CHECKPOINT_EVERY = 2000       # 每 N epoch 保存 checkpoint (v11 验证训练: 2000, 12h 内多存档)
+CHECKPOINT_EVERY = 1000       # v12: 1000 密集存档, 供采样侧早停扫描 (用 memorization/novelty_rerank 选 ckpt)
 SEED            = 42
 
 # ──────────────────────────────────────────────
