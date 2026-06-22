@@ -106,9 +106,9 @@ def train():
     print("\n[Phase 2] Building model...")
     model_builders = {
         "unet": lambda: UNet1d(),
-        "dit-s": lambda: DiT1D_S(),
-        "dit-b": lambda: DiT1D_B(),
-        "dit-l": lambda: DiT1D_L(),
+        "dit-s": lambda: DiT1D_S(seq_len=config.SEQ_LEN),
+        "dit-b": lambda: DiT1D_B(seq_len=config.SEQ_LEN),
+        "dit-l": lambda: DiT1D_L(seq_len=config.SEQ_LEN),
     }
     model = model_builders[args.model]().to(device)
     scheduler = DDPMScheduler().to(device)
