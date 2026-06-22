@@ -79,6 +79,31 @@
 
 ---
 
+## 📦 备件清单(已提前备好,翻开关即用 — 2026-06-22)
+
+> 全部默认关 / 互不干扰 / 不影响在跑的 A1。Step 2/3a 执行时直接用。
+
+**Step 1 A1(进行中)**:`config SEQ_LEN=512/STRIDE=2`(已生效);评估 `eval/auto_eval_v13_a1.sh`(轮询中)。
+- L=512 标定标准:`eval/calib_{mem,rerank}_L512.json`(复制地板 0.0% / C2ST_cal 0.496 / **SigP_cal 0.116**)。
+
+**Step 2 A2 block-bootstrap** — 代码 ready,默认关:
+- 启用:`config.USE_BLOCK_BOOTSTRAP=True`(`BLOCK_LEN=192`/`BOOT_FRAC=0.3`),沿用 A1 配方重训 `deep_v13_a2_boot`。
+- 评估:`nohup bash eval/auto_eval_v13_poll.sh deep_v13_a2_boot <gpu> > logs/ae_v13_a2.log 2>&1 &`(通用轮询器 → `eval/eval_v13_run.sh`:L=512 诚实闸门 + concat2048 长程基线)。
+- 已验证:boot 窗与真实窗 max|pearson| 0.13–0.17 ≪ 0.95(非复制)。
+
+**Step 3a C1 富条件** — 代码 ready,默认关:
+- 启用:`config.USE_CONTEXT_COND=True`(自动 `COND_DIM=16`),重训 `deep_v13_c1_ctx`(DiT-S@512,cond_dim=16)。
+- 自回归采样器:`generate_autoregressive.py`(链式 512→2048,`ctx_features` 与训练同口径,已结构冒烟)。
+- 评估+消融:`nohup bash eval/auto_eval_v13_c1.sh deep_v13_c1_ctx <gpu> ...`:
+  自回归生成 real-ctx 与 zero-ctx(`--force_null`)→ `eval/ctx_ablation.py` 判 context 是否被用上(regime KS;**无差异即停 C1**)→ 长程闸门@2048(对标 L=2048 标定 + v10_retrained)。
+- 注:消融未过则不上自回归长程,直接退回 A2 配置。
+
+**通用评估工具**(已就绪):`eval/{memorization,novelty_rerank,diagnostics,concat_windows,ctx_ablation}.py` + `eval/eval_v13_run.sh`(per-512 通用)。`memorization`/`novelty_rerank` 支持 `--L` 标定。
+
+**Step 3b B1 多资产 / B2 GARCH** — 数据/包依赖,未编码(需先备料):
+- B1:需获取股指↔本国10Y国债同构对(DAX↔Bund10Y 等)日频数据,**放独立文件不入主 CSV**;落地时按 §2-B1 四道硬门(per-pair z-score / featurize 筛选 / 危机去重 / 两阶段预训练-微调)写 `dataset` 多源加载 + 预训练脚本。
+- B2:`arch` 包**未安装**(`pip install arch`),需先装;再写 GJR-GARCH-t surrogate 生成器做热身先验(早停由 C2ST_novel 决定)。**仅 B1 缺数据时的替补。**
+
 ## 相关文件(绝对路径)
 - `config.py`(改 `SEQ_LEN`/`STRIDE`,新增 `USE_BLOCK_BOOTSTRAP`/`BLOCK_LEN`)
 - `dataset.py`(A2 block bootstrap;C1 `c_ctx`;`__getitem__:209-213` `c=window[0]` 是改 condition 锚点)
