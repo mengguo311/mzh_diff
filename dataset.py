@@ -200,14 +200,33 @@ class TimeSeriesDataset(Dataset):
     def __len__(self) -> int:
         return len(self.indices)
 
+    def _make_boot_window(self) -> torch.Tensor:
+        """
+        v13 A2 — on-the-fly moving-block bootstrap 增广窗 (标准化空间, (seq_len, 2))。
+        取 (ceil(L/B)+1) 个随机【真实块】(各长 BLOCK_LEN) 首尾相接, 再【随机裁剪】出 L 长
+        —— 整块搬运保块内 stylized fact, 随机裁剪让接缝位置逐窗不同(避免固定周期伪结构),
+        只造新的宏观次序排列。块取自已标准化(±clip)的 self.data, 故无需再裁剪/归一化。
+        """
+        L, B = self.seq_len, config.BLOCK_LEN
+        N = self.data.shape[0]
+        n_blocks = (L + B - 1) // B + 1                      # 多取一块以便随机移接缝
+        starts = [int(torch.randint(0, N - B + 1, (1,))) for _ in range(n_blocks)]
+        cat = torch.cat([self.data[s:s + B] for s in starts], dim=0)   # (n_blocks*B, 2) > L
+        off = int(torch.randint(0, cat.shape[0] - L + 1, (1,)))
+        return cat[off:off + L]                              # (seq_len, 2)
+
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
         返回单个样本及其起点条件向量: (x, c)
         - x: (2, seq_len) 通道优先的时序数据
         - c: (2,) 序列起点的初始条件向量
+        v13 A2: 若 USE_BLOCK_BOOTSTRAP, 以 BOOT_FRAC 概率改返回一个 on-the-fly bootstrap 增广窗。
         """
-        start = self.indices[idx]
-        window = self.data[start : start + self.seq_len]  # (seq_len, 2)
+        if config.USE_BLOCK_BOOTSTRAP and bool(torch.rand(1) < config.BOOT_FRAC):
+            window = self._make_boot_window()             # (seq_len, 2)
+        else:
+            start = self.indices[idx]
+            window = self.data[start : start + self.seq_len]  # (seq_len, 2)
         x = window.T  # (2, seq_len)
         c = window[0]  # (2,)
         return x, c
