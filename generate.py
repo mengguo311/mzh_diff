@@ -107,6 +107,7 @@ def generate():
     # 默认值使用全局 config 中的值
     seq_len = config.SEQ_LEN
     channels = config.CHANNELS
+    cond_dim = config.COND_DIM
     channel_dims = config.CHANNEL_DIMS
     time_emb_dim = config.TIME_EMB_DIM
     T = config.T
@@ -120,6 +121,7 @@ def generate():
                 run_config = json.load(f)
             seq_len = run_config.get("seq_len", seq_len)
             channels = run_config.get("channels", channels)
+            cond_dim = run_config.get("cond_dim", cond_dim)
             channel_dims = run_config.get("channel_dims", channel_dims)
             time_emb_dim = run_config.get("time_emb_dim", time_emb_dim)
             T = run_config.get("T", T)
@@ -146,6 +148,7 @@ def generate():
         model = model_builders[args.model](
             in_channels=channels,
             seq_len=seq_len,
+            cond_dim=cond_dim,
         ).to(device)
     
     scheduler = DDPMScheduler(
@@ -187,7 +190,7 @@ def generate():
         sampled_conditions = torch.stack(sampled_conditions).to(device)  # (num_samples, cond_dim)
     else:
         print("\n[Step 2.5] Using zero vector as unconditional/null conditions...")
-        sampled_conditions = torch.zeros(args.num_samples, channels, device=device)
+        sampled_conditions = torch.zeros(args.num_samples, cond_dim, device=device)
 
     # ── 4. 分批生成 ──
     print(f"\n[Step 3] Generating {args.num_samples} paths...")

@@ -102,6 +102,17 @@ BLOCK_LEN           = 192     # 块长 (装得下杠杆/波动聚集等块内结
 BOOT_FRAC           = 0.3     # __getitem__ 中返回 bootstrap 窗的概率 (其余为真实窗)
 
 # ──────────────────────────────────────────────
+# v13 C1: context-conditioning 富条件  —— 见 dataset.py / dit1d.py / generate.py
+# ──────────────────────────────────────────────
+# 把条件从 c=window[0](2 维初值, 与波动相关≈0.02 形同无用)升级为【前置上下文窗的富统计向量】
+# (每通道 N_CTX_FEAT 维: std/|r|均值/均值/|r|-acf1/skew/kurt/末值/d2能量), 让模型从"上下文状态"
+# 泛化续写而非背诵; 缩窗 L=512 后配合【自回归拼接】重建 2048 长程(自回归采样器在 step3a 落地)。
+# 必做消融(防 Sig-MMD 式 no-op): 比较 zero-ctx vs real-ctx 生成的 regime 分布, 无差异即停。默认关。
+USE_CONTEXT_COND = False                                  # 开/关 富条件 (v13 C1)
+N_CTX_FEAT       = 8                                       # 每通道上下文特征数
+COND_DIM         = (2 * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS  # 条件维度 (16 或 2)
+
+# ──────────────────────────────────────────────
 # Device Auto-Detection
 # ──────────────────────────────────────────────
 if torch.cuda.is_available():

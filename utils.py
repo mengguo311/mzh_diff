@@ -120,6 +120,7 @@ def save_config_snapshot(run_dir: str):
         "data_path":        config.DATA_PATH,
         "seq_len":          config.SEQ_LEN,
         "channels":         config.CHANNELS,
+        "cond_dim":         config.COND_DIM,
         "stride":           config.STRIDE,
         "clip_range":       config.CLIP_RANGE,
         "channel_dims":     config.CHANNEL_DIMS,

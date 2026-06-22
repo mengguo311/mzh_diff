@@ -200,6 +200,28 @@ class TimeSeriesDataset(Dataset):
     def __len__(self) -> int:
         return len(self.indices)
 
+    @staticmethod
+    def _ctx_stats(s: torch.Tensor) -> torch.Tensor:
+        """v13 C1 — 单通道上下文富统计 (N_CTX_FEAT 维): std/|r|均值/均值/|r|-acf1/skew/kurt/末值/d2能量。"""
+        a = s.abs()
+        am = a - a.mean()
+        var = (am * am).mean().clamp(min=1e-8)
+        acf1 = (am[1:] * am[:-1]).mean() / var
+        sc = s - s.mean()
+        sd = sc.std().clamp(min=1e-8)
+        z = sc / sd
+        d2 = s[2:] - 2.0 * s[1:-1] + s[:-2]
+        return torch.stack([s.std(), a.mean(), s.mean(), acf1,
+                            (z ** 3).mean(), (z ** 4).mean() - 3.0, s[-1], (d2 * d2).mean()])
+
+    def _cond_from(self, window: torch.Tensor, ctx: Optional[torch.Tensor]) -> torch.Tensor:
+        """根据开关返回条件向量: C1 富条件(前置上下文统计; 无前置→零) 或 原 2 维初值。"""
+        if config.USE_CONTEXT_COND:
+            if ctx is None:                                   # 起始窗/bootstrap 无前置上下文 → null
+                return torch.zeros(2 * config.N_CTX_FEAT)
+            return torch.cat([self._ctx_stats(ctx[:, 0]), self._ctx_stats(ctx[:, 1])])
+        return window[0]                                      # (2,) 原起点初值
+
     def _make_boot_window(self) -> torch.Tensor:
         """
         v13 A2 — on-the-fly moving-block bootstrap 增广窗 (标准化空间, (seq_len, 2))。
@@ -221,14 +243,17 @@ class TimeSeriesDataset(Dataset):
         - x: (2, seq_len) 通道优先的时序数据
         - c: (2,) 序列起点的初始条件向量
         v13 A2: 若 USE_BLOCK_BOOTSTRAP, 以 BOOT_FRAC 概率改返回一个 on-the-fly bootstrap 增广窗。
+        v13 C1: 若 USE_CONTEXT_COND, c 改为前置上下文窗的富统计向量 (bootstrap/起始窗→null)。
         """
         if config.USE_BLOCK_BOOTSTRAP and bool(torch.rand(1) < config.BOOT_FRAC):
-            window = self._make_boot_window()             # (seq_len, 2)
+            window = self._make_boot_window()                 # (seq_len, 2)
+            ctx = None                                        # bootstrap 窗无真实前置上下文
         else:
             start = self.indices[idx]
             window = self.data[start : start + self.seq_len]  # (seq_len, 2)
-        x = window.T  # (2, seq_len)
-        c = window[0]  # (2,)
+            ctx = self.data[start - self.seq_len : start] if start >= self.seq_len else None
+        x = window.T                       # (2, seq_len)
+        c = self._cond_from(window, ctx)   # (2,) 或 (2*N_CTX_FEAT,)
         return x, c
 
     def get_scaler(self) -> TimeSeriesScaler:
