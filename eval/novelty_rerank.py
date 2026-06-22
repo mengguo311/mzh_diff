@@ -42,12 +42,18 @@ def copy_split(real, fake, Rz, mu, sd, vol_thr, thresh):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--real", default="/home/u00134/data/train_sp500_us10y.csv")
-    ap.add_argument("--fakes", nargs="+", required=True, help="label=path ...")
+    ap.add_argument("--fakes", nargs="*", default=[], help="label=path ... (留空=只算 L 标定)")
     ap.add_argument("--thresh", type=float, default=0.95)
     ap.add_argument("--json", default=None)
+    ap.add_argument("--L", type=int, default=None, help="窗长 (默认从首个 fake 推断; 步0 标定用 --L 512)")
     args = ap.parse_args()
 
-    L = load_changes(args.fakes[0].split("=", 1)[1]).shape[-1]
+    if args.L is not None:
+        L = args.L
+    elif args.fakes:
+        L = load_changes(args.fakes[0].split("=", 1)[1]).shape[-1]
+    else:
+        ap.error("需要 --L 或 至少一个 --fakes")
     real = load_changes(args.real, target_seq_len=L)
     vol_thr = float(np.median(rolling_std(real[:, 0, :], VOL_WINDOW)))
     Xreal = C.featurize(real, vol_thr)

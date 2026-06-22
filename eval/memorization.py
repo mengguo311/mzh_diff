@@ -68,13 +68,19 @@ def _pearson(a, b):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--real", default="/home/u00134/data/train_sp500_us10y.csv")
-    ap.add_argument("--fakes", nargs="+", required=True, help="label=path ...")
+    ap.add_argument("--fakes", nargs="*", default=[], help="label=path ... (留空=只算 L 标定地板)")
     ap.add_argument("--json", default=None)
-    ap.add_argument("--stride", type=int, default=5)
+    ap.add_argument("--stride", type=int, default=5)  # 须与 diagnostics.load_changes 的 STRIDE 一致
     ap.add_argument("--topk", type=int, default=20)
+    ap.add_argument("--L", type=int, default=None, help="窗长 (默认从首个 fake 推断; 步0 标定用 --L 512)")
     args = ap.parse_args()
 
-    L = load_changes(args.fakes[0].split("=", 1)[1]).shape[-1]
+    if args.L is not None:
+        L = args.L
+    elif args.fakes:
+        L = load_changes(args.fakes[0].split("=", 1)[1]).shape[-1]
+    else:
+        ap.error("需要 --L 或 至少一个 --fakes")
     real = load_changes(args.real, target_seq_len=L)         # (N_real,2,L) 时间序
     n_real = real.shape[0]
     guard = int(np.ceil(L / args.stride))                    # 重叠窗保护半径
@@ -115,11 +121,12 @@ def main():
                                     "copy_frac_p95": frac95, "copy_frac_p99": frac99, "n_fake": len(fake)}
         rows.append((label, med, ratio, pmean, frac95, frac99))
 
-    print(f"{'candidate':16s} {'dNN中位':>9s} {'ratio':>7s} {'raw_p均值':>9s} {'复制率>.95':>10s} {'>.99':>8s}  判读")
-    print("-" * 78)
-    for label, med, ratio, pmean, f95, f99 in sorted(rows, key=lambda r: -r[4]):
-        flag = "严重记忆化!" if f95 > 0.20 else ("明显记忆" if f95 > 0.05 else ("零星复制" if f95 > 0.005 else "未见复制"))
-        print(f"{label:16s} {med:9.4f} {ratio:7.2f} {pmean:9.3f} {f95:9.1%} {f99:8.1%}  {flag}")
+    if rows:
+        print(f"{'candidate':16s} {'dNN中位':>9s} {'ratio':>7s} {'raw_p均值':>9s} {'复制率>.95':>10s} {'>.99':>8s}  判读")
+        print("-" * 78)
+        for label, med, ratio, pmean, f95, f99 in sorted(rows, key=lambda r: -r[4]):
+            flag = "严重记忆化!" if f95 > 0.20 else ("明显记忆" if f95 > 0.05 else ("零星复制" if f95 > 0.005 else "未见复制"))
+            print(f"{label:16s} {med:9.4f} {ratio:7.2f} {pmean:9.3f} {f95:9.1%} {f99:8.1%}  {flag}")
     print(f"\n标定底噪(真实新数据 vs 训练库): 复制率>.95={ref_f95:.1%}  >.99={ref_f99:.1%}")
     print(f"判读: 复制率 = 与最近邻真实窗原序列 Pearson 超阈值的样本占比 (随机对≈0)。")
     print(f"      若 fake 复制率 >> 标定底噪 → 模型在背诵训练集(记忆化); 若 ≈ 底噪 → 市场自相似而非记忆。")
