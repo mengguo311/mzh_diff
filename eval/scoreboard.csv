@@ -1,0 +1,2 @@
+timestamp,line,run,L,n,in_copy_rate,in_c2st_novel,in_sig_p_novel,in_kurt,in_composite,in_n_div,ext_fool_rate,ext_mean_p_real,ext_mean_combined,ext_source
+2026-06-24 22:13,line2,deep_v13_a1_L512,512,5120,0.1447,0.7217,0.0033,8.824,46.2,0,0.043,0.1236,0.1747,cache:summary

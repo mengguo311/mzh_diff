@@ -1,2 +1,4 @@
 *.pt
 *.csv
+# 双线对比记分牌索引(小表, 进库做可追溯; 区别于 output/ 大数据 csv)
+!eval/scoreboard.csv
