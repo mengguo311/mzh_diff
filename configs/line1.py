@@ -20,6 +20,7 @@ OVERRIDES = dict(
     USE_CONTEXT_COND=False,           # 走 v9/v10 路线, 不用富条件(那是 line2)
     USE_BLOCK_BOOTSTRAP=False,
     DGS10_QUANTIZE=0.01,              # 接线 generate.py(补真实量化结构); 非真实度排序主因
+    GEN_NUM_STEPS=500,                # G4 实证: steps200→500 把 regime run_len 49.8→37.4 逼近真实(eta1), 不破坏峰度
     NUM_EPOCHS=2000,                  # M1 实证质量 ~1500-2000ep 饱和, 省半(旧 20000 充分过平滑无用)
     # 容许复制: 不设复制率阈值、不进判定门; 但 realism_board 并报 all-vs-novel 污染 gap 防 RESTING ON COPIES
 )
