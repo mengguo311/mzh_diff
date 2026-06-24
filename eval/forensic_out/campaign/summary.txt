@@ -1,0 +1,31 @@
+C1 低成本验证战役 汇总
+============================================================
+
+【M5 稳定性标定】关键: full vs quick 对 SigP 标定的破坏 + 低 N 噪声
+  ms=512 quick=False seed=1: C2ST_nov=0.770 SigP_nov=0.764 sig_cal=0.326 copy=0.025 kurt=8.16
+  ms=512 quick=False seed=2: C2ST_nov=0.741 SigP_nov=0.140 sig_cal=0.326 copy=0.021 kurt=8.14
+  ms=512 quick=False seed=3: C2ST_nov=0.725 SigP_nov=0.150 sig_cal=0.326 copy=0.018 kurt=8.05
+  ms=512 quick=True seed=1: C2ST_nov=0.770 SigP_nov=0.199 sig_cal=0.046 copy=0.025 kurt=8.16
+  ms=512 quick=True seed=2: C2ST_nov=0.741 SigP_nov=0.079 sig_cal=0.046 copy=0.021 kurt=8.14
+  ms=512 quick=True seed=3: C2ST_nov=0.725 SigP_nov=0.126 sig_cal=0.046 copy=0.018 kurt=8.05
+  ms=1024 quick=False seed=1: C2ST_nov=0.765 SigP_nov=0.927 sig_cal=0.326 copy=0.020 kurt=8.14
+  ms=1024 quick=False seed=2: C2ST_nov=0.737 SigP_nov=0.864 sig_cal=0.326 copy=0.022 kurt=8.16
+  ms=1024 quick=False seed=3: C2ST_nov=0.788 SigP_nov=0.538 sig_cal=0.326 copy=0.033 kurt=8.07
+  ms=1024 quick=True seed=1: C2ST_nov=0.765 SigP_nov=0.497 sig_cal=0.046 copy=0.020 kurt=8.14
+  ms=1024 quick=True seed=2: C2ST_nov=0.737 SigP_nov=0.086 sig_cal=0.046 copy=0.022 kurt=8.16
+  ms=1024 quick=True seed=3: C2ST_nov=0.788 SigP_nov=0.404 sig_cal=0.046 copy=0.033 kurt=8.07
+  ms=2048 quick=False seed=1: C2ST_nov=0.750 SigP_nov=0.844 sig_cal=0.326 copy=0.022 kurt=8.14
+  ms=2048 quick=False seed=2: C2ST_nov=0.768 SigP_nov=0.658 sig_cal=0.326 copy=0.021 kurt=8.05
+  ms=2048 quick=False seed=3: C2ST_nov=0.773 SigP_nov=0.126 sig_cal=0.326 copy=0.020 kurt=8.12
+  ms=2048 quick=True seed=1: C2ST_nov=0.750 SigP_nov=0.020 sig_cal=0.046 copy=0.022 kurt=8.14
+  ms=2048 quick=True seed=2: C2ST_nov=0.768 SigP_nov=0.245 sig_cal=0.046 copy=0.021 kurt=8.05
+  ms=2048 quick=True seed=3: C2ST_nov=0.773 SigP_nov=0.099 sig_cal=0.046 copy=0.020 kurt=8.12
+  ms=full quick=False seed=1: C2ST_nov=0.770 SigP_nov=0.106 sig_cal=0.326 copy=0.022 kurt=8.06
+  ms=full quick=True seed=1: C2ST_nov=0.770 SigP_nov=0.245 sig_cal=0.046 copy=0.022 kurt=8.06
+
+【M1 轨迹】(mean±std over 3 seeds)
+  ep0999: copy=0.000±0.000 C2ST_nov=0.734±0.011 SigP_nov=0.698±0.212 kurt=8.09 high_vol=0.496 n_div=7.0
+  ep1999: copy=0.000±0.000 C2ST_nov=0.743±0.011 SigP_nov=0.569±0.246 kurt=8.08 high_vol=0.499 n_div=16.3
+  ep2999: copy=0.000±0.000 C2ST_nov=0.749±0.029 SigP_nov=0.357±0.212 kurt=8.35 high_vol=0.499 n_div=18.7
+  ep3999: copy=0.006±0.003 C2ST_nov=0.749±0.005 SigP_nov=0.645±0.088 kurt=8.05 high_vol=0.488 n_div=1.0
+  ep4999: copy=0.022±0.001 C2ST_nov=0.738±0.009 SigP_nov=0.734±0.196 kurt=8.00 high_vol=0.491 n_div=0.0

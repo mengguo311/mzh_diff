@@ -1,0 +1,36 @@
+{
+  "L": 2048,
+  "n_real": 2538,
+  "guard": 410,
+  "real_ref_dNN_median": 3.8619890555545813,
+  "real_self_copy_frac_p95": 0.0,
+  "real_self_copy_frac_p99": 0.0,
+  "detect": {
+    "deep_v13_c1_ctx_ar": {
+      "dNN_median": 0.31266132897125554,
+      "ratio_vs_ref": 0.08095862636419549,
+      "ratio_ci95": [
+        0.07794521866863478,
+        0.08408080264297661
+      ],
+      "raw_pearson_mean": 0.051767878263624445,
+      "copy_frac_p90": 0.02265625,
+      "copy_frac_p95": 0.0224609375,
+      "copy_frac_p99": 0.0224609375,
+      "n_fake": 5120
+    },
+    "v10_retrained": {
+      "dNN_median": 0.22585844467791213,
+      "ratio_vs_ref": 0.05848241448355914,
+      "ratio_ci95": [
+        0.0552427780169068,
+        0.06018821721525179
+      ],
+      "raw_pearson_mean": 0.5384567144889945,
+      "copy_frac_p90": 0.538671875,
+      "copy_frac_p95": 0.538671875,
+      "copy_frac_p99": 0.5384765625,
+      "n_fake": 5120
+    }
+  }
+}
