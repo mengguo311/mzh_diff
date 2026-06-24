@@ -123,3 +123,23 @@ if torch.cuda.is_available():
 else:
     DEVICE = torch.device("cpu")
     print("[Config] No CUDA available, using CPU")
+
+# ──────────────────────────────────────────────
+# 双线并行: 配置档案 (CONFIG_PROFILE=line1|line2 → configs/<profile>.py 的 OVERRIDES)
+#   line1 = 真实度优先(外部 fool); line2 = 内部诚实/新颖(续 v13)。
+#   详见 eval/docs/dual_track_structure.md。不设档案则用上面的 base 默认。
+# ──────────────────────────────────────────────
+LINE           = "base"                # 当前线 (base/line1/line2), 供 run 命名空间/记分牌识别
+PRIMARY_METRIC = "internal_honest"     # 主记分牌 (external_fool / internal_honest)
+DGS10_QUANTIZE = None                  # line1 特性: 生成端把 DGS10 吸附到该网格 (如 0.01); None=关
+import os as _os
+_PROFILE = _os.environ.get("CONFIG_PROFILE")
+if _PROFILE:
+    import importlib as _il
+    _ov = _il.import_module(f"configs.{_PROFILE}").OVERRIDES
+    for _k, _v in _ov.items():
+        globals()[_k] = _v
+    COND_DIM = (2 * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS   # 应用档案后重算派生量
+    print(f"[Config] 档案 CONFIG_PROFILE={_PROFILE}: LINE={LINE} SEQ_LEN={SEQ_LEN} "
+          f"CLIP_RANGE={CLIP_RANGE} AUX={USE_AUX_LOSS} CTX={USE_CONTEXT_COND} "
+          f"COND_DIM={COND_DIM} DGS10_Q={DGS10_QUANTIZE} PRIMARY={PRIMARY_METRIC}")
