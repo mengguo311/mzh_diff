@@ -47,7 +47,7 @@ def ctx_features(x: torch.Tensor) -> torch.Tensor:
 
 def autoregressive_generate(model, scheduler, scaler, num_samples, seq_len, k,
                             steps, w, eta, device, seed_ctx="null", seed_bank=None,
-                            batch_size=64, force_null=False, verbose=False):
+                            batch_size=64, force_null=False, x0_clamp=None, verbose=False):
     """链式生成 num_samples 条 (2, k*seq_len) 长样本 (标准化空间逆变换后真实量级)。
     force_null=True: 所有窗条件恒为零 (消融控制臂, 验证 context 是否真被用上)。"""
     cond_dim = model.c_embedder.mlp[0].in_features
@@ -67,7 +67,8 @@ def autoregressive_generate(model, scheduler, scaler, num_samples, seq_len, k,
             with torch.no_grad():
                 x0 = scheduler.ddim_sample_loop(model=model, c=c, x_T=x_T,
                                                 num_inference_steps=steps,
-                                                guidance_scale=w, eta=eta, verbose=False)
+                                                guidance_scale=w, eta=eta,
+                                                x0_clamp=x0_clamp, verbose=False)
             wins.append(x0)
             c = torch.zeros(B, cond_dim, device=device) if force_null else ctx_features(x0).detach()
         full = torch.cat(wins, dim=2)                     # (B,2,k*seq_len)
@@ -111,6 +112,8 @@ def main():
     ap.add_argument("--force_null", action="store_true", help="所有窗条件恒零 (C1 消融控制臂)")
     ap.add_argument("--output", required=True)
     ap.add_argument("--batch_size", type=int, default=64)
+    ap.add_argument("--x0_clamp", type=float, default=None,
+                    help="⑦ x0 钳位(标准化 σ, 如 20 治自回归发散); 不传则用 config.X0_CLAMP_SIGMA")
     args = ap.parse_args()
 
     device = config.DEVICE
@@ -132,10 +135,14 @@ def main():
 
     scheduler = DDPMScheduler().to(device)
     t0 = time.time()
+    x0c = args.x0_clamp if args.x0_clamp is not None else getattr(config, "X0_CLAMP_SIGMA", None)
+    if x0c is not None:
+        print(f"[ar] ⑦ x0 钳位启用: ±{x0c}σ (治自回归罕见单窗发散)")
     samples = autoregressive_generate(model, scheduler, scaler, args.num_samples, seq_len,
                                       args.k, args.num_inference_steps, args.guidance_scale,
                                       args.eta, device, args.seed_ctx, seed_bank,
-                                      args.batch_size, force_null=args.force_null, verbose=True)
+                                      args.batch_size, force_null=args.force_null,
+                                      x0_clamp=x0c, verbose=True)
     L = samples.shape[2]
     sp = samples[:, 0, :].numpy(); dg = samples[:, 1, :].numpy()
     cols = [f"sp500_{i}" for i in range(L)] + [f"dgs10_{i}" for i in range(L)]

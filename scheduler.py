@@ -222,6 +222,7 @@ class DDPMScheduler(nn.Module):
         num_inference_steps: int = 50,
         guidance_scale: float = 3.0,
         eta: float = 0.0,
+        x0_clamp: float = None,
         verbose: bool = True,
     ) -> torch.Tensor:
         """
@@ -286,6 +287,10 @@ class DDPMScheduler(nn.Module):
 
             # 预测干净样本 x_0
             x0_pred = (x - torch.sqrt(1.0 - alpha_bar_curr) * eps_pred) / torch.sqrt(alpha_bar_curr)
+            # ⑦ x0 钳位(标准化空间, 治自回归罕见单窗 DDIM 发散): 真实 max|z|≈17σ,
+            #   钳到 ±x0_clamp 允许真实范围+余量、截掉爆值(发散行 std 可达 14.8)。None=关。
+            if x0_clamp is not None:
+                x0_pred = torch.clamp(x0_pred, -x0_clamp, x0_clamp)
 
             # DDIM 随机性: σ_t = eta · √((1-ᾱ_prev)/(1-ᾱ_curr)) · √(1 - ᾱ_curr/ᾱ_prev)
             # eta=0 → σ=0 确定性 (现状); eta→1 → 接近 DDPM ancestral
