@@ -1,6 +1,10 @@
 # line1 训练方向 —— 最大化第三方交叉评分（external fool/combined）
 
-> 用户目标:**可适当容许复制率,换取大幅提高真实性 = 最大化队友 v5 鉴别器的 fool/combined**。
+> ⛔ **已取代(2026-06-24)**:用户澄清 **hw01_discriminator 不是基准/优化目标**,**绝不 Goodhart 去 game 它的 fool 率**。
+> 本文(最大化 fool = 过平滑迎合 hw01)框架**作废**,仅留作"hw01 奖励什么"的归因参考。
+> **line1 正确方向 = 逼近真·真实市场(诚实诊断+分布距离)+ 同时提升我们自己的鉴别器**,见 **`line1_realism_direction.md`**。
+
+> (历史)旧用户目标:可适当容许复制率,换取大幅提高真实性 = 最大化队友 v5 鉴别器的 fool/combined。
 > 依据:`thirdparty/THIRDPARTY_CLAUDE.md` + 11-agent 归因(test_AUC 0.9999,与上报 Spearman 0.809)。
 > 配方落地 = `configs/line1.py`;对比 = `eval/scoreboard.py`;结构 = `dual_track_structure.md`。
 

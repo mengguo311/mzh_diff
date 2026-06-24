@@ -132,6 +132,7 @@ else:
 LINE           = "base"                # 当前线 (base/line1/line2), 供 run 命名空间/记分牌识别
 PRIMARY_METRIC = "internal_honest"     # 主记分牌 (external_fool / internal_honest)
 DGS10_QUANTIZE = None                  # line1 特性: 生成端把 DGS10 吸附到该网格 (如 0.01); None=关
+X0_CLAMP_SIGMA = None                  # ⑦ 生成端 x0 钳位(标准化 σ, 如 20); None=关, 治自回归罕见单窗发散
 import os as _os
 _PROFILE = _os.environ.get("CONFIG_PROFILE")
 if _PROFILE:
