@@ -1,0 +1,253 @@
+{
+  "L": 2048,
+  "bands": {
+    "tail_kurt": {
+      "lo": 17.500376063833595,
+      "hi": 20.581523242598184,
+      "real": 19.04094965321589,
+      "type": "two-sided"
+    },
+    "vol_acf1": {
+      "lo": 0.2088678177796569,
+      "hi": 0.220869376715222,
+      "real": 0.21486859724743945,
+      "type": "two-sided"
+    },
+    "leverage1": {
+      "lo": -0.09317712895244334,
+      "hi": -0.08800176675566765,
+      "real": -0.0905894478540555,
+      "type": "two-sided"
+    },
+    "high_vol_frac": {
+      "lo": 0.49289605355097305,
+      "hi": 0.5070959645522927,
+      "real": 0.49999600905163283,
+      "type": "two-sided"
+    },
+    "mean_run_len": {
+      "lo": 32.29722127922934,
+      "hi": 33.440533246243184,
+      "real": 32.86887726273626,
+      "type": "two-sided"
+    },
+    "dgs10_grid": {
+      "lo": 0.999999997,
+      "hi": 1.000000003,
+      "real": 1.0,
+      "type": "two-sided"
+    },
+    "wasserstein": {
+      "lo": 0.0,
+      "hi": 0.0021106602603791916,
+      "real": 0.0015927521791666663,
+      "type": "upper"
+    }
+  },
+  "self_check_fail": [],
+  "detect": {
+    "v10r": {
+      "copy_rate": 0.538671875,
+      "n_novel": 2362,
+      "all": {
+        "tail_kurt": {
+          "value": 7.6823,
+          "pass": false
+        },
+        "vol_acf1": {
+          "value": 0.2129,
+          "pass": true
+        },
+        "leverage1": {
+          "value": -0.0866,
+          "pass": false
+        },
+        "high_vol_frac": {
+          "value": 0.463,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 42.647,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.0,
+          "pass": false
+        },
+        "wasserstein": {
+          "value": 0.0004,
+          "pass": true
+        }
+      },
+      "novel": {
+        "tail_kurt": {
+          "value": 9.0518,
+          "pass": false
+        },
+        "vol_acf1": {
+          "value": 0.2305,
+          "pass": false
+        },
+        "leverage1": {
+          "value": -0.0788,
+          "pass": false
+        },
+        "high_vol_frac": {
+          "value": 0.4817,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 49.9432,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.0,
+          "pass": false
+        },
+        "wasserstein": {
+          "value": 0.0003,
+          "pass": true
+        }
+      },
+      "realism_pass": false,
+      "resting_on_copies": [
+        "vol_acf1"
+      ]
+    },
+    "v9_20k": {
+      "copy_rate": 0.3013671875,
+      "n_novel": 3577,
+      "all": {
+        "tail_kurt": {
+          "value": 4.7121,
+          "pass": false
+        },
+        "vol_acf1": {
+          "value": 0.2187,
+          "pass": true
+        },
+        "leverage1": {
+          "value": -0.0884,
+          "pass": true
+        },
+        "high_vol_frac": {
+          "value": 0.3987,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 57.4882,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.0,
+          "pass": false
+        },
+        "wasserstein": {
+          "value": 0.0009,
+          "pass": true
+        }
+      },
+      "novel": {
+        "tail_kurt": {
+          "value": 5.2474,
+          "pass": false
+        },
+        "vol_acf1": {
+          "value": 0.2263,
+          "pass": false
+        },
+        "leverage1": {
+          "value": -0.0866,
+          "pass": false
+        },
+        "high_vol_frac": {
+          "value": 0.393,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 66.2592,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.0,
+          "pass": false
+        },
+        "wasserstein": {
+          "value": 0.0009,
+          "pass": true
+        }
+      },
+      "realism_pass": false,
+      "resting_on_copies": [
+        "vol_acf1",
+        "leverage1"
+      ]
+    },
+    "v12": {
+      "copy_rate": 0.36484375,
+      "n_novel": 3252,
+      "all": {
+        "tail_kurt": {
+          "value": 7.581,
+          "pass": false
+        },
+        "vol_acf1": {
+          "value": 0.2032,
+          "pass": false
+        },
+        "leverage1": {
+          "value": -0.0866,
+          "pass": false
+        },
+        "high_vol_frac": {
+          "value": 0.4273,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 77.9958,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.0,
+          "pass": false
+        },
+        "wasserstein": {
+          "value": 0.0008,
+          "pass": true
+        }
+      },
+      "novel": {
+        "tail_kurt": {
+          "value": 8.4967,
+          "pass": false
+        },
+        "vol_acf1": {
+          "value": 0.2081,
+          "pass": false
+        },
+        "leverage1": {
+          "value": -0.0812,
+          "pass": false
+        },
+        "high_vol_frac": {
+          "value": 0.4332,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 102.3819,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.0,
+          "pass": false
+        },
+        "wasserstein": {
+          "value": 0.0007,
+          "pass": true
+        }
+      },
+      "realism_pass": false,
+      "resting_on_copies": []
+    }
+  }
+}
