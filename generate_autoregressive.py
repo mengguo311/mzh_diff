@@ -145,6 +145,10 @@ def main():
                                       x0_clamp=x0c, verbose=True)
     L = samples.shape[2]
     sp = samples[:, 0, :].numpy(); dg = samples[:, 1, :].numpy()
+    _q = getattr(config, "DGS10_QUANTIZE", None)        # line1: DGS10 量化吸附到 0.01 网格
+    if _q:
+        dg = np.round(dg / _q) * _q
+        print(f"[ar] [DGS10量化] 吸附到 {_q} 网格")
     cols = [f"sp500_{i}" for i in range(L)] + [f"dgs10_{i}" for i in range(L)]
     pd.DataFrame(np.concatenate([sp, dg], axis=1), columns=cols).to_csv(args.output, index=False)
     print(f"[ar] {samples.shape[0]} 条 x{L} 写入 {args.output} ({time.time()-t0:.0f}s)")

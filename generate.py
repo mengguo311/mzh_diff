@@ -244,6 +244,12 @@ def generate():
     sp500_data = all_samples[:, 0, :].numpy()  # (N, seq_len)
     dgs10_data = all_samples[:, 1, :].numpy()  # (N, seq_len)
 
+    # line1: DGS10 量化吸附 (真实债券差分量化到 0.01; 补真实量化结构, realism_board.dgs10_grid 0→1.0)
+    _q = getattr(config, "DGS10_QUANTIZE", None)
+    if _q:
+        dgs10_data = np.round(dgs10_data / _q) * _q
+        print(f"  [DGS10量化] 吸附到 {_q} 网格 (匹配真实量化指纹)")
+
     # 拼接为宽表: (N, 2 * seq_len)
     combined = np.concatenate([sp500_data, dgs10_data], axis=1)
 
