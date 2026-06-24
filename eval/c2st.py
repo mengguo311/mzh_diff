@@ -42,8 +42,13 @@ def _abs_acf(x, max_lag):
     return [float((a[lag:] * a[:-lag]).mean() / var) for lag in range(1, max_lag + 1)]
 
 
-def featurize(windows: np.ndarray, vol_threshold: float, vol_w: int = VOL_WINDOW) -> np.ndarray:
-    """windows: (N,2,L) -> (N, D) stylized-fact 特征矩阵。通道0=sp500, 1=dgs10。"""
+def featurize(windows: np.ndarray, vol_threshold: float, vol_w: int = VOL_WINDOW,
+              dgs10_fp: bool = False) -> np.ndarray:
+    """windows: (N,2,L) -> (N, D) stylized-fact 特征矩阵。通道0=sp500, 1=dgs10。
+    dgs10_fp=True 时额外追加 3 维 DGS10 真实量化指纹(rounding_0.01/zero_diff/unique_ratio):
+    真实 DGS10 差分量化到 0.01(on_grid≈1.0), 扩散生成连续浮点(≈0) → 鉴别器近完美抓手。
+    ⚠️ 默认 False: 诚实闸门(memorization/novelty_rerank/forensic_suite)用默认口径不受影响;
+    仅 eval/forensic_auc.py 等鉴别器路径显式开启(否则会把所有扩散模型 C2ST 压到 ≈1.0, 丢失模型间排序)。"""
     sp, dg = windows[:, 0, :], windows[:, 1, :]
     N = windows.shape[0]
 
@@ -74,6 +79,10 @@ def featurize(windows: np.ndarray, vol_threshold: float, vol_w: int = VOL_WINDOW
         row += [float(d2e[i]), float(tv[i]), float(racf1[i]),
                 float(high[i]), float(switch[i]), float(runlen[i]),
                 float(maxv[i]), float(volvol[i])]
+        if dgs10_fp:                                              # DGS10 真实量化指纹(真实量级 d)
+            row += [float(np.mean(np.abs(d * 100.0 - np.round(d * 100.0)) < 1e-8)),  # on 0.01 grid
+                    float(np.mean(np.abs(d) < 1e-12)),                                # zero diff
+                    float(len(np.unique(np.round(d, 8))) / len(d))]                   # unique ratio
         feats.append(row)
     X = np.array(feats, dtype=np.float64)
     return np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
