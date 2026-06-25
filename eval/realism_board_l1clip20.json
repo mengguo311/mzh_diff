@@ -1,0 +1,116 @@
+{
+  "L": 2048,
+  "bands": {
+    "tail_kurt": {
+      "lo": 17.500376066833596,
+      "hi": 20.581523239598184,
+      "real": 19.04094965321589,
+      "type": "two-sided"
+    },
+    "vol_acf1": {
+      "lo": 0.20886782077965693,
+      "hi": 0.22086937371522197,
+      "real": 0.21486859724743945,
+      "type": "two-sided"
+    },
+    "leverage1": {
+      "lo": -0.09317712595244335,
+      "hi": -0.08800176975566765,
+      "real": -0.0905894478540555,
+      "type": "two-sided"
+    },
+    "high_vol_frac": {
+      "lo": 0.4924930689158583,
+      "hi": 0.5074989491874073,
+      "real": 0.49999600905163283,
+      "type": "two-sided"
+    },
+    "mean_run_len": {
+      "lo": 32.29722128222934,
+      "hi": 33.44053324324319,
+      "real": 32.86887726273626,
+      "type": "two-sided"
+    },
+    "dgs10_grid": {
+      "lo": 0.984997,
+      "hi": 1.015003,
+      "real": 1.0,
+      "type": "two-sided"
+    },
+    "wasserstein": {
+      "lo": 0.0,
+      "hi": 0.0021106602603791916,
+      "real": 0.0015927521791666663,
+      "type": "upper"
+    }
+  },
+  "self_check_fail": [],
+  "detect": {
+    "l1_clip20": {
+      "copy_rate": 0.388671875,
+      "n_novel": 626,
+      "all": {
+        "tail_kurt": {
+          "value": 20.1541,
+          "pass": true
+        },
+        "vol_acf1": {
+          "value": 0.2057,
+          "pass": false
+        },
+        "leverage1": {
+          "value": -0.0914,
+          "pass": true
+        },
+        "high_vol_frac": {
+          "value": 0.4305,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 63.5506,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.9926,
+          "pass": true
+        },
+        "wasserstein": {
+          "value": 0.0007,
+          "pass": true
+        }
+      },
+      "novel": {
+        "tail_kurt": {
+          "value": 20.4432,
+          "pass": true
+        },
+        "vol_acf1": {
+          "value": 0.204,
+          "pass": false
+        },
+        "leverage1": {
+          "value": -0.0884,
+          "pass": true
+        },
+        "high_vol_frac": {
+          "value": 0.4295,
+          "pass": false
+        },
+        "mean_run_len": {
+          "value": 82.5406,
+          "pass": false
+        },
+        "dgs10_grid": {
+          "value": 0.992,
+          "pass": true
+        },
+        "wasserstein": {
+          "value": 0.0007,
+          "pass": true
+        }
+      },
+      "realism_pass": false,
+      "resting_on_copies": []
+    }
+  }
+}
