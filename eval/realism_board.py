@@ -52,7 +52,7 @@ def fam_values(w):
         "leverage1": float(F.leverage_curve(sp, 1)[0]),
         "high_vol_frac": float(np.mean(rs > _VOL_THR[0])),
         "mean_run_len": _mean_run_len(rs, _VOL_THR[0]),
-        "dgs10_grid": float(np.mean(np.abs(dg * 100.0 - np.round(dg * 100.0)) < 1e-8)),
+        "dgs10_grid": float(np.mean(np.abs(dg * 100.0 - np.round(dg * 100.0)) < 1e-6)),  # 1e-6: 容 float64 量化误差
     }
 
 
@@ -82,7 +82,8 @@ def real_bands(real, n_boot=120, seed=0):
             samp[k].append(v[k])
     bands = {}
     for k in keys:
-        m, s = float(np.mean(samp[k])), float(np.std(samp[k]) + 1e-9)
+        m = float(np.mean(samp[k]))
+        s = max(float(np.std(samp[k])), 0.005 * abs(m) + 1e-6)   # 带宽地板: 防零宽带(如 dgs10_grid real std=0)
         bands[k] = {"lo": m - K_BAND * s, "hi": m + K_BAND * s, "real": m, "type": "two-sided"}
     # wasserstein 族: real-vs-real 自距(A vs B pooled 收益) 的 bootstrap 上界
     wss = []

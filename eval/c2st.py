@@ -80,7 +80,7 @@ def featurize(windows: np.ndarray, vol_threshold: float, vol_w: int = VOL_WINDOW
                 float(high[i]), float(switch[i]), float(runlen[i]),
                 float(maxv[i]), float(volvol[i])]
         if dgs10_fp:                                              # DGS10 真实量化指纹(真实量级 d)
-            row += [float(np.mean(np.abs(d * 100.0 - np.round(d * 100.0)) < 1e-8)),  # on 0.01 grid
+            row += [float(np.mean(np.abs(d * 100.0 - np.round(d * 100.0)) < 1e-6)),  # on 0.01 grid(容float误差)
                     float(np.mean(np.abs(d) < 1e-12)),                                # zero diff
                     float(len(np.unique(np.round(d, 8))) / len(d))]                   # unique ratio
         feats.append(row)
