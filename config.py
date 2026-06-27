@@ -20,6 +20,17 @@ SEQ_LEN         = 512        # v13 A1 缩窗: 2048→512 (独立段 7.2→28.8, 
 CHANNELS        = 2         # sp500 日收益率 + DGS10 日差分
 STRIDE          = 2         # v13 A1: 缩窗后 stride 2 维持训练样本量 (~7100 窗)
 
+# ── 多通道 (v14-fusion): 通道→源文件/列名 映射 + per-channel 量化/输出名 ──
+# base 默认=原 2 通道 (sp500 + DGS10[本列已是日差分, mean≈0 std0.067]); 多通道由 configs/fusion.py 档案注入。
+# 改这些【不影响】line1/line2 的 2 通道复现 (它们不设 CHANNEL_COLS → 用此默认)。
+FRED_PATH       = "/home/u00134/data/fred_treasury.csv"   # 多通道辅助源 (DGS2_diff/DGS30_diff/...)
+CHANNEL_COLS    = ["sp500", "DGS10"]                       # 通道顺序=训练通道编号 (决定 ch0/ch1/...)
+CHANNEL_SOURCES = {"sp500": "main", "DGS10": "main",       # 每列来自主CSV('main')还是FRED辅助源('fred')
+                   "DGS2_diff": "fred", "DGS30_diff": "fred",
+                   "DFII10_diff": "fred", "T10YIE_diff": "fred"}
+QUANTIZE_GRID   = {}                                       # per-channel 生成端量化网格 (利率→0.01, sp500永不); 空=回退 legacy DGS10_QUANTIZE
+OUTPUT_PREFIX   = {"sp500": "sp500", "DGS10": "dgs10"}     # 生成CSV列名前缀 (保下游 eval 的 sp500_*/dgs10_* 兼容)
+
 # ──────────────────────────────────────────────
 # Z-score Scaler
 # ──────────────────────────────────────────────
@@ -110,7 +121,7 @@ BOOT_FRAC           = 0.3     # __getitem__ 中返回 bootstrap 窗的概率 (�
 # 必做消融(防 Sig-MMD 式 no-op): 比较 zero-ctx vs real-ctx 生成的 regime 分布, 无差异即停。默认关。
 USE_CONTEXT_COND = True                                  # 开/关 富条件 (v13 C1)
 N_CTX_FEAT       = 8                                       # 每通道上下文特征数
-COND_DIM         = (2 * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS  # 条件维度 (16 或 2)
+COND_DIM         = (CHANNELS * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS  # 条件维度 (C*8 富条件 或 C 初值)
 
 # ──────────────────────────────────────────────
 # Device Auto-Detection
@@ -140,7 +151,7 @@ if _PROFILE:
     _ov = _il.import_module(f"configs.{_PROFILE}").OVERRIDES
     for _k, _v in _ov.items():
         globals()[_k] = _v
-    COND_DIM = (2 * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS   # 应用档案后重算派生量
+    COND_DIM = (CHANNELS * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS   # 应用档案后重算 (CHANNELS 已被档案更新)
     print(f"[Config] 档案 CONFIG_PROFILE={_PROFILE}: LINE={LINE} SEQ_LEN={SEQ_LEN} "
           f"CLIP_RANGE={CLIP_RANGE} AUX={USE_AUX_LOSS} CTX={USE_CONTEXT_COND} "
           f"COND_DIM={COND_DIM} DGS10_Q={DGS10_QUANTIZE} PRIMARY={PRIMARY_METRIC}")

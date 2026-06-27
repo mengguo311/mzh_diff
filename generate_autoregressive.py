@@ -29,9 +29,9 @@ from scheduler import DDPMScheduler
 
 
 def ctx_features(x: torch.Tensor) -> torch.Tensor:
-    """(B,2,L) 标准化窗 → (B, 2*8) 富上下文向量。**逐项与 dataset._ctx_stats 同口径同顺序。**"""
+    """(B,C,L) 标准化窗 → (B, C*8) 富上下文向量。**逐项与 dataset._ctx_stats 同口径同顺序。**"""
     feats = []
-    for ch in range(2):
+    for ch in range(config.CHANNELS):
         s = x[:, ch, :]                                   # (B,L)
         a = s.abs(); am = a - a.mean(1, keepdim=True)
         var = (am * am).mean(1).clamp(min=1e-8)
@@ -63,7 +63,7 @@ def autoregressive_generate(model, scheduler, scaler, num_samples, seq_len, k,
             c = seed_bank[sel].to(device)
         wins = []
         for j in range(k):
-            x_T = torch.randn(B, 2, seq_len, device=device)
+            x_T = torch.randn(B, config.CHANNELS, seq_len, device=device)
             with torch.no_grad():
                 x0 = scheduler.ddim_sample_loop(model=model, c=c, x_T=x_T,
                                                 num_inference_steps=steps,
@@ -144,14 +144,25 @@ def main():
                                       args.batch_size, force_null=args.force_null,
                                       x0_clamp=x0c, verbose=True)
     L = samples.shape[2]
-    sp = samples[:, 0, :].numpy(); dg = samples[:, 1, :].numpy()
-    _q = getattr(config, "DGS10_QUANTIZE", None)        # line1: DGS10 量化吸附到 0.01 网格
-    if _q:
-        dg = np.round(dg / _q) * _q
-        print(f"[ar] [DGS10量化] 吸附到 {_q} 网格")
-    cols = [f"sp500_{i}" for i in range(L)] + [f"dgs10_{i}" for i in range(L)]
-    pd.DataFrame(np.concatenate([sp, dg], axis=1), columns=cols).to_csv(args.output, index=False)
-    print(f"[ar] {samples.shape[0]} 条 x{L} 写入 {args.output} ({time.time()-t0:.0f}s)")
+    arr = samples.numpy().astype(np.float64)               # (N, C, L); float64 保量化网格干净
+    names    = getattr(config, "CHANNEL_COLS", ["sp500", "DGS10"])
+    qgrid    = getattr(config, "QUANTIZE_GRID", {}) or {}
+    prefix   = getattr(config, "OUTPUT_PREFIX", {}) or {}
+    legacy_q = getattr(config, "DGS10_QUANTIZE", None)     # 向后兼容 line1 标量量化
+    blocks, cols = [], []
+    for ch, name in enumerate(names):
+        a = arr[:, ch, :]
+        g = qgrid.get(name)
+        if g is None and name == "DGS10" and legacy_q:
+            g = legacy_q
+        if g:
+            a = np.round(a / g) * g
+            print(f"[ar] [{name}量化] 吸附到 {g} 网格")
+        blocks.append(a)
+        col = prefix.get(name, name.lower())
+        cols += [f"{col}_{i}" for i in range(L)]
+    pd.DataFrame(np.concatenate(blocks, axis=1), columns=cols).to_csv(args.output, index=False)
+    print(f"[ar] {samples.shape[0]} 条 x{L} ({len(names)}通道) 写入 {args.output} ({time.time()-t0:.0f}s)")
 
 
 if __name__ == "__main__":

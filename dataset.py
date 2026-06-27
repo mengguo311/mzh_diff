@@ -59,7 +59,7 @@ class TimeSeriesScaler:
         self.std = torch.clamp(self.std, min=1e-8)
 
         print(f"[Scaler] Fitted on {data.shape[0]} samples")
-        for i, name in enumerate(["sp500", "DGS10"]):
+        for i, name in enumerate(config.CHANNEL_COLS):
             print(f"  {name}: mean={self.mean[i]:.6f}, std={self.std[i]:.6f}")
 
     def transform(self, x: torch.Tensor) -> torch.Tensor:
@@ -130,7 +130,9 @@ class TimeSeriesScaler:
         self.std = state["std"]
         self.clip_range = state["clip_range"]
         print(f"[Scaler] Parameters loaded from {path}")
-        for i, name in enumerate(["sp500", "DGS10"]):
+        assert len(self.mean) == len(config.CHANNEL_COLS), \
+            f"scaler 通道数 {len(self.mean)} != CHANNEL_COLS {len(config.CHANNEL_COLS)} (加载了错误通道集的 scaler?)"
+        for i, name in enumerate(config.CHANNEL_COLS):
             print(f"  {name}: mean={self.mean[i]:.6f}, std={self.std[i]:.6f}")
 
 
@@ -168,14 +170,23 @@ class TimeSeriesDataset(Dataset):
         self.seq_len = seq_len
         self.stride = stride
 
-        # ── 1. 读取数据 ──
-        df = pd.read_csv(data_path, index_col=0)
-        assert "sp500" in df.columns and "DGS10" in df.columns, \
-            f"CSV must contain 'sp500' and 'DGS10' columns, got {list(df.columns)}"
+        # ── 1. 读取数据 (多通道: 主CSV + 按需 FRED 辅助源, 按 CHANNEL_COLS 选列/定通道序) ──
+        df_main = pd.read_csv(data_path, index_col=0)
+        need_fred = any(config.CHANNEL_SOURCES.get(c) == "fred" for c in config.CHANNEL_COLS)
+        if need_fred:
+            df_fred = pd.read_csv(config.FRED_PATH, index_col=0)
+            df = pd.concat([df_main, df_fred], axis=1)         # 两文件 index 已对齐项目交易日
+        else:
+            df = df_main
+        miss = [c for c in config.CHANNEL_COLS if c not in df.columns]
+        assert not miss, f"缺通道列 {miss}; 可选 {list(df.columns)}"
 
-        # ── 2. 前向填充缺失值 ──
-        df = df[["sp500", "DGS10"]].ffill().bfill()
-        raw_data = df.values.astype(np.float32)  # (N, 2)
+        # ── 2. 选通道(顺序=通道编号) + 截到所有通道非NaN起始 + 起点后内部缺口 ffill ──
+        df = df[config.CHANNEL_COLS]
+        valid = df.notna().all(axis=1)                          # 所有通道都有值的行
+        first = valid.idxmax()                                  # 最早全通道非NaN起点 (利用 1976/1977/2003 边界)
+        df = df.loc[first:].ffill().bfill()                     # 起点后补内部缺口(如 DGS30 缺口); 不跨序列首回填
+        raw_data = df.values.astype(np.float32)                 # (N, C)
 
         print(f"[Dataset] Loaded {len(raw_data)} rows from {data_path}")
 
@@ -218,9 +229,9 @@ class TimeSeriesDataset(Dataset):
         """根据开关返回条件向量: C1 富条件(前置上下文统计; 无前置→零) 或 原 2 维初值。"""
         if config.USE_CONTEXT_COND:
             if ctx is None:                                   # 起始窗/bootstrap 无前置上下文 → null
-                return torch.zeros(2 * config.N_CTX_FEAT)
-            return torch.cat([self._ctx_stats(ctx[:, 0]), self._ctx_stats(ctx[:, 1])])
-        return window[0]                                      # (2,) 原起点初值
+                return torch.zeros(config.CHANNELS * config.N_CTX_FEAT)
+            return torch.cat([self._ctx_stats(ctx[:, ch]) for ch in range(config.CHANNELS)])
+        return window[0]                                      # (C,) 原起点初值
 
     def _make_boot_window(self) -> torch.Tensor:
         """

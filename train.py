@@ -105,10 +105,10 @@ def train():
     # ── 2. 模型 ──
     print("\n[Phase 2] Building model...")
     model_builders = {
-        "unet": lambda: UNet1d(),
-        "dit-s": lambda: DiT1D_S(seq_len=config.SEQ_LEN, cond_dim=config.COND_DIM),
-        "dit-b": lambda: DiT1D_B(seq_len=config.SEQ_LEN, cond_dim=config.COND_DIM),
-        "dit-l": lambda: DiT1D_L(seq_len=config.SEQ_LEN, cond_dim=config.COND_DIM),
+        "unet": lambda: UNet1d(in_channels=config.CHANNELS),
+        "dit-s": lambda: DiT1D_S(in_channels=config.CHANNELS, seq_len=config.SEQ_LEN, cond_dim=config.COND_DIM),
+        "dit-b": lambda: DiT1D_B(in_channels=config.CHANNELS, seq_len=config.SEQ_LEN, cond_dim=config.COND_DIM),
+        "dit-l": lambda: DiT1D_L(in_channels=config.CHANNELS, seq_len=config.SEQ_LEN, cond_dim=config.COND_DIM),
     }
     model = model_builders[args.model]().to(device)
     scheduler = DDPMScheduler().to(device)

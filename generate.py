@@ -103,7 +103,8 @@ def generate():
     # ── 2. 加载和解析运行配置 (如果存在) ──
     checkpoint_dir = os.path.dirname(os.path.abspath(args.checkpoint))
     config_json_path = os.path.join(checkpoint_dir, "config.json")
-    
+    run_config = {}                       # 快照(若 config.json 存在则填充); 多通道列名/量化从此恢复
+
     # 默认值使用全局 config 中的值
     seq_len = config.SEQ_LEN
     channels = config.CHANNELS
@@ -236,29 +237,31 @@ def generate():
 
     gen_time = time.time() - gen_start
 
-    # ── 5. 拼接并保存 CSV ──
+    # ── 5. 拼接并保存 CSV (N 通道泛化; 保下游 eval 的 sp500_*/dgs10_* 兼容列名) ──
     print(f"\n[Step 4] Saving to CSV...")
-    all_samples = torch.cat(all_samples, dim=0)  # (N, 2, seq_len)
+    all_samples = torch.cat(all_samples, dim=0)  # (N, C, seq_len)
 
-    # 拆分双通道
-    sp500_data = all_samples[:, 0, :].numpy()  # (N, seq_len)
-    dgs10_data = all_samples[:, 1, :].numpy()  # (N, seq_len)
+    # 通道名/量化/输出前缀: 优先 run_config 快照, 回退 config 全局
+    names    = run_config.get("channel_cols", getattr(config, "CHANNEL_COLS", ["sp500", "DGS10"]))
+    qgrid    = run_config.get("quantize_grid") or getattr(config, "QUANTIZE_GRID", {}) or {}
+    prefix   = run_config.get("output_prefix") or getattr(config, "OUTPUT_PREFIX", {}) or {}
+    legacy_q = getattr(config, "DGS10_QUANTIZE", None)   # 向后兼容 line1 标量量化
 
-    # line1: DGS10 量化吸附 (真实债券差分量化到 0.01; 补真实量化结构, realism_board.dgs10_grid 0→1.0)
-    _q = getattr(config, "DGS10_QUANTIZE", None)
-    if _q:
-        dgs10_data = np.round(dgs10_data / _q) * _q
-        print(f"  [DGS10量化] 吸附到 {_q} 网格 (匹配真实量化指纹)")
+    samples = all_samples.numpy().astype(np.float64)     # (N, C, seq_len); float64 保量化网格干净
+    blocks, columns = [], []
+    for ch, name in enumerate(names):
+        arr = samples[:, ch, :]                          # (N, seq_len)
+        g = qgrid.get(name)
+        if g is None and name == "DGS10" and legacy_q:   # line1 兼容: 标量 DGS10_QUANTIZE
+            g = legacy_q
+        if g:                                            # 利率通道吸附到网格 (sp500 不在 qgrid → 跳过)
+            arr = np.round(arr / g) * g
+            print(f"  [{name}量化] 吸附到 {g} 网格 (匹配真实量化指纹)")
+        blocks.append(arr)
+        col = prefix.get(name, name.lower())             # ch0→sp500, ch1→dgs10(小写兼容), 新通道→真名小写
+        columns += [f"{col}_{i}" for i in range(seq_len)]
 
-    # 拼接为宽表: (N, 2 * seq_len)
-    combined = np.concatenate([sp500_data, dgs10_data], axis=1)
-
-    # 列名: sp500_0...sp500_{seq_len-1}, dgs10_0...dgs10_{seq_len-1}
-    columns = (
-        [f"sp500_{i}" for i in range(seq_len)]
-        + [f"dgs10_{i}" for i in range(seq_len)]
-    )
-
+    combined = np.concatenate(blocks, axis=1)            # (N, C * seq_len)
     df = pd.DataFrame(combined, columns=columns)
     df.to_csv(output_path, index=False)
 
@@ -271,17 +274,10 @@ def generate():
     print(f"  Total time:     {gen_time:.1f}s")
     print(f"  Time per sample: {gen_time/args.num_samples*1000:.2f}ms")
     print()
-    print("  ── SP500 日收益率统计 ──")
-    print(f"    Mean:  {sp500_data.mean():.6f}")
-    print(f"    Std:   {sp500_data.std():.6f}")
-    print(f"    Min:   {sp500_data.min():.6f}")
-    print(f"    Max:   {sp500_data.max():.6f}")
-    print()
-    print("  ── DGS10 日差分统计 ──")
-    print(f"    Mean:  {dgs10_data.mean():.6f}")
-    print(f"    Std:   {dgs10_data.std():.6f}")
-    print(f"    Min:   {dgs10_data.min():.6f}")
-    print(f"    Max:   {dgs10_data.max():.6f}")
+    for ch, name in enumerate(names):                    # 逐通道统计 (N 通道泛化)
+        arr = blocks[ch]
+        print(f"  ── {name} 统计 ──")
+        print(f"    Mean: {arr.mean():.6f}  Std: {arr.std():.6f}  Min: {arr.min():.6f}  Max: {arr.max():.6f}")
 
 
 if __name__ == "__main__":

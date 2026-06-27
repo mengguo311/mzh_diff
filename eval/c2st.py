@@ -42,15 +42,39 @@ def _abs_acf(x, max_lag):
     return [float((a[lag:] * a[:-lag]).mean() / var) for lag in range(1, max_lag + 1)]
 
 
+def _cross_row(sp, d10, d2):
+    """10 维跨通道/收益率曲线取证特征 (v14-fusion, productionized A4)。
+    通道约定 sp500 / DGS10_diff / DGS2_diff。这些是【单通道边际看不到】的取证维度:
+    破坏跨通道结构而保各通道边际的 fake, marginal AUC≈0.5 / 加这些后→1.0 (A4 受控演示)。"""
+    def cc(a, b):
+        if len(a) < 4:
+            return 0.0
+        c = np.corrcoef(a, b)[0, 1]
+        return float(c) if np.isfinite(c) else 0.0
+    c_sp10, c_sp2, c_102 = cc(sp, d10), cc(sp, d2), cc(d10, d2)        # 股债 / 股-2Y / 利率联动
+    thr = sp.mean() - 1.5 * sp.std(); mk = sp < thr                   # 危机期(sp 跌穿 -1.5σ)
+    t_sp10 = cc(sp[mk], d10[mk]) if mk.sum() > 3 else 0.0             # 尾部股债避险协动
+    t_102 = cc(d10[mk], d2[mk]) if mk.sum() > 3 else 0.0             # 尾部曲线协动
+    slope = d10 - d2                                                  # 2s10s 斜率变化(无需 level 锚)
+    s_std = float(slope.std()); s_kur = float(np.clip(kurtosis(slope), -20, 200))
+    sign_ag = float(np.mean(np.sign(d10) == np.sign(d2)))            # 曲线平行移动一致性/无套利
+    ll_p = cc(d10[1:], d2[:-1]); ll_m = cc(d10[:-1], d2[1:])         # lead-lag(±1)
+    return [c_sp10, c_sp2, c_102, t_sp10, t_102, s_std, s_kur, sign_ag, ll_p, ll_m]
+
+
 def featurize(windows: np.ndarray, vol_threshold: float, vol_w: int = VOL_WINDOW,
-              dgs10_fp: bool = False) -> np.ndarray:
-    """windows: (N,2,L) -> (N, D) stylized-fact 特征矩阵。通道0=sp500, 1=dgs10。
+              dgs10_fp: bool = False, cross_channel: bool = False) -> np.ndarray:
+    """windows: (N,C,L) -> (N, D) stylized-fact 特征矩阵。通道0=sp500, 1=dgs10(, 2=dgs2)。
     dgs10_fp=True 时额外追加 3 维 DGS10 真实量化指纹(rounding_0.01/zero_diff/unique_ratio):
     真实 DGS10 差分量化到 0.01(on_grid≈1.0), 扩散生成连续浮点(≈0) → 鉴别器近完美抓手。
+    cross_channel=True 且 C≥3 时追加 10 维跨通道/收益率曲线取证特征(_cross_row, v14-fusion)。
     ⚠️ 默认 False: 诚实闸门(memorization/novelty_rerank/forensic_suite)用默认口径不受影响;
-    仅 eval/forensic_auc.py 等鉴别器路径显式开启(否则会把所有扩散模型 C2ST 压到 ≈1.0, 丢失模型间排序)。"""
+    仅 eval/forensic_auc.py / forensic_cross.py 等鉴别器路径显式开启(否则会把所有扩散模型 C2ST
+    压到 ≈1.0, 丢失模型间排序; 且每加一维就移动 go/no-go 球门)。"""
     sp, dg = windows[:, 0, :], windows[:, 1, :]
     N = windows.shape[0]
+    has_cross = cross_channel and windows.shape[1] >= 3
+    d2_all = windows[:, 2, :] if has_cross else None
 
     # 向量化的 roughness / regime (基于 sp 通道)
     rs = rolling_std(sp, vol_w)                                   # (N, L-w+1)
@@ -83,6 +107,8 @@ def featurize(windows: np.ndarray, vol_threshold: float, vol_w: int = VOL_WINDOW
             row += [float(np.mean(np.abs(d * 100.0 - np.round(d * 100.0)) < 1e-6)),  # on 0.01 grid(容float误差)
                     float(np.mean(np.abs(d) < 1e-12)),                                # zero diff
                     float(len(np.unique(np.round(d, 8))) / len(d))]                   # unique ratio
+        if has_cross:                                             # 跨通道/收益率曲线特征(C≥3, v14-fusion)
+            row += _cross_row(s, d, d2_all[i])
         feats.append(row)
     X = np.array(feats, dtype=np.float64)
     return np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
