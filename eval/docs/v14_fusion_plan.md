@@ -107,6 +107,39 @@ CONFIG_PROFILE=fusion conda run --no-capture-output -n ts_diffusion python -u ev
 峰度≥12(sp500) **AND** C2ST_新颖≤地板上沿 **AND** 复制率<3ch地板上沿 **AND** 长程不退 **AND** frac_div<1%
 **AND** forensic_cross 的 marginal+cross AUC 不显著高于纯 stylized(即跨通道结构也逼真)。
 
+## 10. 训练结果与终裁(2026-06-27,checkpoint_final ep2499)
+
+**训练**:`logs/fusion/v14_3ch_clip20_boot_ctx/`,2500ep / **310min(5.17h)** / final loss 0.0107 / best 0.0099(ep2408)/ 6 ckpt。
+
+### ★ Native L=512(模型原生输出 = 强交付,对标 L512 标尺 0.0%/0.496/0.116)
+| 闸门 | fusion native | 判定 | 历史对比 |
+|---|---|---|---|
+| 复制率 | **4.9%** | WARN | ≪ v10 53.9% / v12 36.5% / **A1-native 14.5%** |
+| C2ST_新颖 | **0.632** | WARN | ✅ vs A1 0.722 / C1 0.770 / line2 0.620 → **并列史上最优** |
+| SigP_新颖 | 0.003 | FAIL | native 短窗固有弱(同 A1) |
+| 峰度 | **21.7**(real 18.7) | — | ✅ 真厚尾达成无过冲 |
+| 诊断 | patch_spike **1.0x** / d2 **0.98x** / high_vol 0.47 | — | ✅ 完全干净 |
+| forensic_cross | **cross_gain ≈ 0**(L512) | — | ✅ 跨通道/曲线结构逼真 |
+| 综合诚实分 | **63.5/100** | — | — |
+
+**结论**:native L=512 = **项目历代最强单窗模型** —— 同时达成真厚尾 + 极低复制 + 史上最优新颖realism + 逼真跨通道收益率曲线结构,诊断全干净。直接回答"真实度+复制率同时优化"。
+
+### AR-2048 长程(自回归 512→2048)— 暴露 bootstrap 的 Pareto 取舍
+- **AR 失稳 + 零重训修复**:原 AR 发散(ctx 反馈 runaway:逐窗 z-std 0.95→1.0→1.6→2.7,kurt 爆 85)→ 新增 **ctx 反馈钳位**(`generate_autoregressive.py --ctx_clamp_pct`,把生成 ctx 逐维钳到真实 ctx 分位内)→ p5/p95 彻底修复(kurt 80→**25**、patch_spike 40→**0.9**、d2 2.6→**1.04**)。
+- **但 SigP_新颖 仍 0.003 FAIL**:紧钳位下 AR 已干净(kurt 25)签名仍塌 → **决定性证明签名塌与 AR 失稳无关**。
+- **真因 = joint block-bootstrap(BOOT_FRAC=0.3)**:30% 训练窗是块乱序拼接(无长程结构)→ 模型未学到 2048 尺度连贯路径 → 签名律塌。**bootstrap 买来 0.0% 复制率,代价是长程签名**(对照 C1 无 boot,AR 把 SigP 修到 0.106)。
+- AR copy_rate 0.0%(完美)、C2ST_新颖 0.709(p1/p99);紧钳位 p5/p95 C2ST 反升 0.807(过紧削 regime 连续性)。
+
+### go/no-go 总判
+- **真实度轴**:✅ 厚尾达成(kurt 21.7)、✅ 跨通道曲线结构逼真(cross_gain≈0)、✅ 诊断干净。
+- **复制率轴**:✅ native 4.9% / AR 0.0%(史上最低档)。
+- **新颖度**:◐ C2ST_新颖 0.632(史上最优但未 PASS 0.496 —— 数据稀缺地板)。
+- **长程签名**:❌ SigP 0.003(被 bootstrap 牺牲)。
+- **净判**:**native L512 = 强交付**(真实度+复制率双优达成);**长程签名需降 BOOT_FRAC 重训**修复(下一步)。
+
+### 下一步(修长程签名)
+降 `BOOT_FRAC` 0.3→0.1~0.15(或 0)重训 `fusion/v14_lowboot`:保大部分抗记忆,恢复长程连贯 → 目标 AR SigP 回升到 ~0.1(如 C1)同时 copy 仍 <10%。代价 ~5h。ctx 反馈钳位修复已就位,新模型 AR 直接可用。
+
 ## 9. 未决风险
 
 - 多通道**不增独立窗**(indep512 28.8→23.8),数据稀缺铁律不被打穿;复制率全靠三杠杆,诚实判读。

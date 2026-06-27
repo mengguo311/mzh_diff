@@ -47,9 +47,12 @@ def ctx_features(x: torch.Tensor) -> torch.Tensor:
 
 def autoregressive_generate(model, scheduler, scaler, num_samples, seq_len, k,
                             steps, w, eta, device, seed_ctx="null", seed_bank=None,
-                            batch_size=64, force_null=False, x0_clamp=None, verbose=False):
-    """链式生成 num_samples 条 (2, k*seq_len) 长样本 (标准化空间逆变换后真实量级)。
-    force_null=True: 所有窗条件恒为零 (消融控制臂, 验证 context 是否真被用上)。"""
+                            batch_size=64, force_null=False, x0_clamp=None, ctx_bounds=None,
+                            verbose=False):
+    """链式生成 num_samples 条 (C, k*seq_len) 长样本 (标准化空间逆变换后真实量级)。
+    force_null=True: 所有窗条件恒为零 (消融控制臂, 验证 context 是否真被用上)。
+    ctx_bounds=(lo,hi): 把【生成窗反馈的 ctx】逐维钳制到真实 ctx 分布范围内 —— 治自回归
+      反馈放大(生成窗 ctx 统计略膨胀→下一窗条件 OOD→逐窗 std 失控爆炸, 见诊断 窗0..3 std 0.95→2.7)。"""
     cond_dim = model.c_embedder.mlp[0].in_features
     out = []
     done = 0
@@ -70,13 +73,18 @@ def autoregressive_generate(model, scheduler, scaler, num_samples, seq_len, k,
                                                 guidance_scale=w, eta=eta,
                                                 x0_clamp=x0_clamp, verbose=False)
             wins.append(x0)
-            c = torch.zeros(B, cond_dim, device=device) if force_null else ctx_features(x0).detach()
-        full = torch.cat(wins, dim=2)                     # (B,2,k*seq_len)
+            if force_null:
+                c = torch.zeros(B, cond_dim, device=device)
+            else:
+                c = ctx_features(x0).detach()
+                if ctx_bounds is not None:                 # 钳生成ctx到真实分布内, 防反馈放大
+                    c = torch.clamp(c, ctx_bounds[0], ctx_bounds[1])
+        full = torch.cat(wins, dim=2)                     # (B,C,k*seq_len)
         out.append(scaler.inverse_transform(full).cpu())
         done += B
         if verbose:
             print(f"  自回归 {done}/{num_samples}")
-    return torch.cat(out, dim=0)                           # (N,2,k*seq_len)
+    return torch.cat(out, dim=0)                           # (N,C,k*seq_len)
 
 
 def _load_model(model_name, checkpoint, device):
@@ -114,6 +122,8 @@ def main():
     ap.add_argument("--batch_size", type=int, default=64)
     ap.add_argument("--x0_clamp", type=float, default=None,
                     help="⑦ x0 钳位(标准化 σ, 如 20 治自回归发散); 不传则用 config.X0_CLAMP_SIGMA")
+    ap.add_argument("--ctx_clamp_pct", type=float, default=0.01,
+                    help="ctx 反馈钳位: 生成ctx逐维钳到真实ctx的[p,1-p]分位内, 治自回归反馈放大(逐窗std爆)。0=关")
     args = ap.parse_args()
 
     device = config.DEVICE
@@ -123,15 +133,25 @@ def main():
     if cond_dim <= 2:
         raise SystemExit("[ar] cond_dim<=2: 该 checkpoint 非 C1 富条件模型, 自回归无意义。")
 
-    seed_bank = None
-    if args.seed_ctx == "real" and not args.force_null:
+    # 真实 ctx 库: 同时用作 (a) 窗0 种子 (seed_ctx=real) 与 (b) ctx 反馈钳位边界
+    real_bank = None
+    if (args.seed_ctx == "real" and not args.force_null) or (args.ctx_clamp_pct > 0 and not args.force_null):
         _saved = config.USE_CONTEXT_COND
-        config.USE_CONTEXT_COND = True                    # 让 dataset 出富条件做种子
+        config.USE_CONTEXT_COND = True                    # 让 dataset 出富条件
         ds = TimeSeriesDataset(scaler=scaler)
         valid = [i for i, s in enumerate(ds.indices) if s >= seq_len]
-        seed_bank = torch.stack([ds[i][1] for i in valid])
+        real_bank = torch.stack([ds[i][1] for i in valid])
         config.USE_CONTEXT_COND = _saved
-        print(f"[ar] 真实种子上下文库 {tuple(seed_bank.shape)}")
+        print(f"[ar] 真实 ctx 库 {tuple(real_bank.shape)}")
+    seed_bank = real_bank if (args.seed_ctx == "real" and not args.force_null) else None
+
+    ctx_bounds = None
+    if args.ctx_clamp_pct > 0 and not args.force_null and real_bank is not None:
+        p = args.ctx_clamp_pct
+        lo = real_bank.quantile(p, dim=0).to(device)
+        hi = real_bank.quantile(1 - p, dim=0).to(device)
+        ctx_bounds = (lo, hi)
+        print(f"[ar] ctx 反馈钳位启用: 真实ctx 逐维 [p{p*100:.0f}, p{(1-p)*100:.0f}] (治自回归反馈放大)")
 
     scheduler = DDPMScheduler().to(device)
     t0 = time.time()
@@ -142,7 +162,7 @@ def main():
                                       args.k, args.num_inference_steps, args.guidance_scale,
                                       args.eta, device, args.seed_ctx, seed_bank,
                                       args.batch_size, force_null=args.force_null,
-                                      x0_clamp=x0c, verbose=True)
+                                      x0_clamp=x0c, ctx_bounds=ctx_bounds, verbose=True)
     L = samples.shape[2]
     arr = samples.numpy().astype(np.float64)               # (N, C, L); float64 保量化网格干净
     names    = getattr(config, "CHANNEL_COLS", ["sp500", "DGS10"])
