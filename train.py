@@ -26,7 +26,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
-from dataset import TimeSeriesDataset
+from dataset import TimeSeriesDataset, MultiAssetDataset
 from unet1d import UNet1d
 from dit1d import DiT1D, DiT1D_S, DiT1D_B, DiT1D_L
 from scheduler import DDPMScheduler
@@ -57,7 +57,9 @@ def parse_args():
     parser.add_argument("--run_name", type=str, default=None,
                         help="运行名称（默认自动生成时间戳）")
     parser.add_argument("--resume", type=str, default=None,
-                        help="从 checkpoint 恢复训练（提供 .pt 路径）")
+                        help="从 checkpoint 恢复训练（提供 .pt 路径; 续 epoch+优化器状态）")
+    parser.add_argument("--init_from", type=str, default=None,
+                        help="仅载【权重】初始化(model+ema), 重置优化器/epoch (E4 阶段2 微调用)")
     parser.add_argument("--seed", type=int, default=config.SEED,
                         help=f"随机种子 (default: {config.SEED})")
     return parser.parse_args()
@@ -88,15 +90,23 @@ def train():
 
     # ── 1. 数据管道 ──
     print("\n[Phase 1] Loading data...")
-    dataset = TimeSeriesDataset()
+    if getattr(config, "USE_MULTIASSET", False):
+        print("  [E4] 多资产池化预训练数据集 (MultiAssetDataset)")
+        dataset = MultiAssetDataset()
+    else:
+        dataset = TimeSeriesDataset()
+    _nw = min(12, max(2, (os.cpu_count() or 4) // 6))   # ctx-stat 计算 CPU 密集 → 多 worker 并行喂数据
     dataloader = DataLoader(
         dataset,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=2,
+        num_workers=_nw,
         pin_memory=(device.type == "cuda"),
         drop_last=True,
+        persistent_workers=(_nw > 0),
+        prefetch_factor=4 if _nw > 0 else None,
     )
+    print(f"  DataLoader workers: {_nw}")
     scaler = dataset.get_scaler()
 
     print(f"  Samples:      {len(dataset)}")
@@ -138,6 +148,18 @@ def train():
     # 保存 scaler 参数
     scaler_path = os.path.join(run_dir, "scaler.pt")
     scaler.save(scaler_path)
+
+    # ── 5b. 仅权重初始化 (E4 阶段2 微调: 载预训权重, 不动优化器/epoch) ──
+    if args.init_from is not None:
+        print(f"\n[Init-from] 载预训权重 {args.init_from} (仅 model+ema, 重置优化器/epoch)")
+        ck = torch.load(args.init_from, map_location=device, weights_only=False)
+        msd = ck.get("model_state_dict", ck)
+        missing, unexpected = model.load_state_dict(msd, strict=False)
+        if missing or unexpected:
+            print(f"  [init] missing={len(missing)} unexpected={len(unexpected)} (架构不一致时检查)")
+        if "ema_state_dict" in ck:
+            ema.load_state_dict(ck["ema_state_dict"])
+        print("  [init] 预训权重已载入; 从 epoch 0 在当前数据集微调。")
 
     # ── 6. 恢复训练 ──
     start_epoch = 0

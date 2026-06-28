@@ -270,3 +270,72 @@ class TimeSeriesDataset(Dataset):
     def get_scaler(self) -> TimeSeriesScaler:
         """获取 scaler 实例（用于保存或传递给生成阶段）。"""
         return self.scaler
+
+
+# ──────────────────────────────────────────────
+# MultiAssetDataset (E4 / B1): 多市场池化预训练
+# ──────────────────────────────────────────────
+
+class MultiAssetDataset(TimeSeriesDataset):
+    """E4 多资产跨市场预训练数据集 —— 池化 US + 多国(jp/uk/eu)【同构对】(股指日 log 收益 + 本国
+    10Y 日差分), 注入真·独立宏观窗(独立窗 ~29→~77 @L512)。
+
+    关键设计(防泄露/正确迁移):
+      - **per-market z-score**: 每市场用自身 mean/std 标准化(+CLIP_RANGE 截断) → 各市场单位方差
+        可比, 且外部市场绝不污染 US 量纲;
+      - **窗不跨市场**: 滑窗只在单一市场内部; 上下文 ctx 也只取同市场前置窗(起始窗→null);
+      - get_scaler() 返回 **US scaler**(供阶段2微调/生成对齐; 预训阶段本身不生成)。
+    阶段2 微调: 关 USE_MULTIASSET, train.py --init_from <预训ckpt> 在 US 上继续(仅载权重)。
+    复用父类 _ctx_stats/_cond_from(口径与单源完全一致)。block-bootstrap 在预训阶段不启用。
+    """
+
+    def __init__(self, seq_len: int = config.SEQ_LEN, stride: int = config.STRIDE,
+                 scaler: Optional[TimeSeriesScaler] = None):
+        Dataset.__init__(self)
+        self.seq_len = seq_len
+        self.stride = stride
+        self.blocks: list[torch.Tensor] = []     # 各市场标准化后 (N_m, C)
+        self.index: list[tuple[int, int]] = []   # (block_id, start) 池化窗索引
+        us_scaler = None
+        for mkt in config.MULTIASSET_MARKETS:
+            raw = self._load_market_raw(mkt)                     # (N, C) 原始量级
+            sc = TimeSeriesScaler(clip_range=config.CLIP_RANGE)
+            sc.fit(raw)                                          # per-market z-score
+            data = sc.transform(torch.tensor(raw, dtype=torch.float32))   # (N, C) 标准化+clip
+            bid = len(self.blocks)
+            self.blocks.append(data)
+            n_win = 0
+            for s in range(0, len(data) - seq_len + 1, stride):
+                self.index.append((bid, s)); n_win += 1
+            print(f"[MultiAsset] {mkt:4} {len(data):6d} 行 → {n_win} 窗 (独立 ~{len(data)//seq_len})")
+            if mkt == "us":
+                us_scaler = sc
+        if us_scaler is None:                                    # 未含 us 时回退首个市场 scaler
+            us_scaler = TimeSeriesScaler(clip_range=config.CLIP_RANGE)
+            us_scaler.fit(self._load_market_raw(config.MULTIASSET_MARKETS[0]))
+        self.scaler = scaler or us_scaler
+        print(f"[MultiAsset] 池化 {len(config.MULTIASSET_MARKETS)} 市场 → {len(self.index)} 窗 "
+              f"(seq_len={seq_len}, stride={stride}); get_scaler=US")
+
+    def __len__(self) -> int:
+        return len(self.index)
+
+    @staticmethod
+    def _load_market_raw(mkt: str) -> np.ndarray:
+        """加载单市场 (N, CHANNELS) 原始量级双通道 [风险资产日收益, 10Y 日差分]。"""
+        if mkt == "us":
+            df = pd.read_csv(config.DATA_PATH, index_col=0)[config.CHANNEL_COLS]
+            df = df.loc[df.notna().all(axis=1).idxmax():].ffill().bfill()
+            return df.values.astype(np.float32)
+        path = os.path.join(config.MULTIASSET_DIR, f"{mkt}.csv")
+        df = pd.read_csv(path)[["eq_ret", "y10_diff"]].dropna()
+        return df.values.astype(np.float32)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        bid, start = self.index[idx]
+        data = self.blocks[bid]                                  # (N_m, C) 该市场标准化数据
+        window = data[start: start + self.seq_len]               # (seq_len, C)
+        ctx = data[start - self.seq_len: start] if start >= self.seq_len else None  # 同市场前置窗
+        x = window.T                                             # (C, seq_len)
+        c = self._cond_from(window, ctx)                         # 复用父类口径
+        return x, c

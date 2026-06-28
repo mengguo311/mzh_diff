@@ -124,6 +124,16 @@ N_CTX_FEAT       = 8                                       # 每通道上下文�
 COND_DIM         = (CHANNELS * N_CTX_FEAT) if USE_CONTEXT_COND else CHANNELS  # 条件维度 (C*8 富条件 或 C 初值)
 
 # ──────────────────────────────────────────────
+# E4 (B1): 多资产跨市场预训练  —— 见 dataset.MultiAssetDataset / eval/fetch_multiasset.py
+# ──────────────────────────────────────────────
+# 注入【真·独立宏观窗】(US 外的同构对: 股指日 log 收益 + 本国 10Y 日差分), 把独立窗 ~29→~77(L512)。
+# 阶段1: USE_MULTIASSET=True 池化多市场预训(per-market z-score, 窗不跨市场); 阶段2: 关多资产,
+# 用 --init_from 载预训权重在 US SP500↔DGS10 微调。E0 实证 floor=数据稀缺 → 唯一治本方向。默认关。
+USE_MULTIASSET     = False                                # 开/关 多资产池化预训 (E4)
+MULTIASSET_DIR     = "/home/u00134/data/multiasset"       # 外部市场 CSV 目录 (绝不入主 CSV)
+MULTIASSET_MARKETS = ["us", "jp", "uk", "eu"]             # 池化市场 (us=主CSV; jp/uk/eu=multiasset/*.csv)
+
+# ──────────────────────────────────────────────
 # Device Auto-Detection
 # ──────────────────────────────────────────────
 if torch.cuda.is_available():
