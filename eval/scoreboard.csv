@@ -1,0 +1,4 @@
+timestamp,line,run,L,rl_realism,rl_fail,rl_resting,in_copy_rate,in_c2st_novel,in_sig_p_novel,in_kurt,ext_fool_rate,ext_mean_combined,ext_source
+2026-06-24 23:19,line2,deep_v13_a1_L512,512,FAIL,tail_kurt|vol_acf1|leverage1|high_vol_frac|mean_run_len|dgs10_grid,-,0.1447,0.7217,0.0033,8.824,0.043,0.1747,cache
+2026-06-25 17:00,line1,l1_clip15,2048,FAIL,tail_kurt|high_vol_frac|mean_run_len,leverage1,0.3477,0.6883,0.0033,13.327,pending,pending,未缓存(跑 mguo/discriminate_mguo.py)
+2026-06-25 23:34,line2,l2_clip11_FINAL,2048,,,,0.0002,0.6198,0.485,29.701,pending,pending,未缓存(跑 mguo/discriminate_mguo.py)

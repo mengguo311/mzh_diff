@@ -1,0 +1,10 @@
+{
+  "L": 2048,
+  "high_real_mean": 0.4893382296289447,
+  "high_zero_mean": 0.3041394115199704,
+  "ks_high_p": 0.0,
+  "runlen_real_mean": 35.6136707776199,
+  "runlen_zero_mean": 40.896230685147984,
+  "ks_run_p": 1.283442633887989e-98,
+  "context_used": true
+}

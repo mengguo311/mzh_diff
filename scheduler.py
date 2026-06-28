@@ -212,3 +212,105 @@ class DDPMScheduler(nn.Module):
                       f"x range: [{x.min():.3f}, {x.max():.3f}]")
 
         return x
+
+    def ddim_sample_loop(
+        self,
+        model: nn.Module,
+        c: torch.Tensor,
+        shape: tuple = None,
+        x_T: torch.Tensor = None,
+        num_inference_steps: int = 50,
+        guidance_scale: float = 3.0,
+        eta: float = 0.0,
+        x0_clamp: float = None,
+        verbose: bool = True,
+    ) -> torch.Tensor:
+        """
+        广义 DDIM 快速采样循环，结合 Classifier-Free Guidance (CFG)。
+        eta=0 为确定性 DDIM (偏平滑)；eta→1 注入随机性，接近 DDPM ancestral
+        (恢复高频纹理 / 波动爆发，缓解过平滑)。
+        
+        Args:
+            model:               U-Net 噪声预测模型
+            c:                   条件向量 (B, cond_dim)
+            shape:               生成张量的形状 (B, 2, seq_len)，与 x_T 二选一
+            x_T:                 初始纯噪声张量，若提供则忽略 shape
+            num_inference_steps: 快速采样步数 (例如 50)
+            guidance_scale:      引导权重 w (例如 3.0 ~ 5.0)，w=1.0 为纯有条件，w=0.0 为纯无条件
+            eta:                 DDIM 随机性 (0=确定性, 1≈DDPM)，越大注入越多噪声/纹理
+            verbose:             是否打印进度
+        Returns:
+            x_0:                 (B, 2, seq_len) — 生成的干净数据
+        """
+        device = next(model.parameters()).device
+
+        if x_T is not None:
+            x = x_T.to(device)
+        else:
+            assert shape is not None, "Must provide shape or x_T"
+            x = torch.randn(shape, device=device)
+
+        B, _, L = x.shape
+        model.eval()
+
+        # 生成均匀跳过的时间步序列，例如：[-1, 19, 39, ..., 999] (当 T=1000, steps=50 时)
+        times = torch.linspace(-1, self.num_timesteps - 1, num_inference_steps + 1, device=device)
+        times = times.round().long()
+
+        for i in reversed(range(1, len(times))):
+            t_curr_val = times[i].item()
+            t_prev_val = times[i - 1].item()
+
+            t_curr = torch.full((B,), t_curr_val, device=device, dtype=torch.long)
+
+            # CFG 提速技巧：单次模型前向同时处理有条件与无条件
+            x_double = torch.cat([x, x], dim=0)
+            t_double = torch.cat([t_curr, t_curr], dim=0)
+            
+            c_null = torch.zeros_like(c)
+            c_double = torch.cat([c, c_null], dim=0)
+
+            with torch.no_grad():
+                eps_double = model(x_double, t_double, c_double)
+
+            eps_cond, eps_uncond = torch.chunk(eps_double, 2, dim=0)
+
+            # CFG 外推公式
+            eps_pred = eps_uncond + guidance_scale * (eps_cond - eps_uncond)
+
+            # 获取 alpha_bar 系数
+            alpha_bar_curr = self.alphas_cumprod[t_curr_val].view(1, 1, 1)
+            if t_prev_val >= 0:
+                alpha_bar_prev = self.alphas_cumprod[t_prev_val].view(1, 1, 1)
+            else:
+                alpha_bar_prev = torch.tensor(1.0, device=device).view(1, 1, 1)
+
+            # 预测干净样本 x_0
+            x0_pred = (x - torch.sqrt(1.0 - alpha_bar_curr) * eps_pred) / torch.sqrt(alpha_bar_curr)
+            # ⑦ x0 钳位(标准化空间, 治自回归罕见单窗 DDIM 发散): 真实 max|z|≈17σ,
+            #   钳到 ±x0_clamp 允许真实范围+余量、截掉爆值(发散行 std 可达 14.8)。None=关。
+            if x0_clamp is not None:
+                x0_pred = torch.clamp(x0_pred, -x0_clamp, x0_clamp)
+
+            # DDIM 随机性: σ_t = eta · √((1-ᾱ_prev)/(1-ᾱ_curr)) · √(1 - ᾱ_curr/ᾱ_prev)
+            # eta=0 → σ=0 确定性 (现状); eta→1 → 接近 DDPM ancestral
+            if eta > 0.0 and t_prev_val >= 0:
+                sigma = eta * torch.sqrt((1.0 - alpha_bar_prev) / (1.0 - alpha_bar_curr)) \
+                            * torch.sqrt(1.0 - alpha_bar_curr / alpha_bar_prev)
+            else:
+                sigma = torch.zeros_like(alpha_bar_prev)
+
+            # 指向 x_t 的方向项 (扣除随机项方差，保证总方差守恒)
+            dir_xt = torch.sqrt(torch.clamp(1.0 - alpha_bar_prev - sigma ** 2, min=0.0)) * eps_pred
+
+            # 更新得到 x_{t-1}
+            x = torch.sqrt(alpha_bar_prev) * x0_pred + dir_xt
+            if eta > 0.0 and t_prev_val >= 0:
+                x = x + sigma * torch.randn_like(x)
+
+            if verbose and (i % max(1, num_inference_steps // 10) == 0 or i == len(times) - 1 or i == 1):
+                print(f"  [DDIM Scheduler] Step {num_inference_steps - i + 1:>2d}/{num_inference_steps} "
+                      f"(t_curr={t_curr_val:>3d} -> t_prev={t_prev_val:>3d}) | "
+                      f"x range: [{x.min():.3f}, {x.max():.3f}]")
+
+        return x

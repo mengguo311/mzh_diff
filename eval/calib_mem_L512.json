@@ -1,0 +1,9 @@
+{
+  "L": 512,
+  "n_real": 2845,
+  "guard": 103,
+  "real_ref_dNN_median": 2.6588008332397677,
+  "real_self_copy_frac_p95": 0.0,
+  "real_self_copy_frac_p99": 0.0,
+  "detect": {}
+}

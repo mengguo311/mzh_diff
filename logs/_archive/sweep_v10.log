@@ -1,0 +1,69 @@
+[skip gen] output/sw_e0_s50_w3.csv 已存在
+[score] e0_s50_w3
+    Fake 批次总分:          46.80 / 100.00
+[diag]  e0_s50_w3
+    d2_energy       6.961e-04  4.710e-04 -2.25e-04 2.25e-04
+    mean_run_len    3.287e+01  5.278e+01 +1.99e+01 1.99e+01
+[skip gen] output/sw_e1_s50_w3.csv 已存在
+[score] e1_s50_w3
+    Fake 批次总分:          48.50 / 100.00
+[diag]  e1_s50_w3
+    d2_energy       6.961e-04  4.882e-04 -2.08e-04 2.08e-04
+    mean_run_len    3.287e+01  3.913e+01 +6.26e+00 6.26e+00
+[gen]  e1_s100_w3  (eta=1.0 steps=100 w=3.0 N=512)
+  Output:       output/sw_e1_s100_w3.csv
+  Output:         output/sw_e1_s100_w3.csv
+  Total time:     83.1s
+[score] e1_s100_w3
+    Fake 批次总分:          50.15 / 100.00
+[diag]  e1_s100_w3
+    d2_energy       6.961e-04  5.412e-04 -1.55e-04 1.55e-04
+    mean_run_len    3.287e+01  3.583e+01 +2.96e+00 2.96e+00
+[gen]  e1_s200_w3  (eta=1.0 steps=200 w=3.0 N=512)
+  Output:       output/sw_e1_s200_w3.csv
+  Output:         output/sw_e1_s200_w3.csv
+  Total time:     169.4s
+[score] e1_s200_w3
+    Fake 批次总分:          50.57 / 100.00
+[diag]  e1_s200_w3
+    d2_energy       6.961e-04  5.613e-04 -1.35e-04 1.35e-04
+    mean_run_len    3.287e+01  3.645e+01 +3.58e+00 3.58e+00
+[gen]  e1_s100_w1.5  (eta=1.0 steps=100 w=1.5 N=512)
+  Output:       output/sw_e1_s100_w1.5.csv
+  Output:         output/sw_e1_s100_w1.5.csv
+  Total time:     84.5s
+[score] e1_s100_w1.5
+    Fake 批次总分:          50.16 / 100.00
+[diag]  e1_s100_w1.5
+    d2_energy       6.961e-04  5.264e-04 -1.70e-04 1.70e-04
+    mean_run_len    3.287e+01  3.614e+01 +3.27e+00 3.28e+00
+[gen]  e1_s200_w1  (eta=1.0 steps=200 w=1.0 N=512)
+  Output:       output/sw_e1_s200_w1.csv
+  Output:         output/sw_e1_s200_w1.csv
+  Total time:     169.5s
+[score] e1_s200_w1
+    Fake 批次总分:          51.01 / 100.00
+[diag]  e1_s200_w1
+    d2_energy       6.961e-04  5.524e-04 -1.44e-04 1.44e-04
+    mean_run_len    3.287e+01  3.646e+01 +3.59e+00 3.59e+00
+[skip gen] output/sw_e1_s400_w1.csv 已存在
+[score] e1_s400_w1
+    Fake 批次总分:          49.78 / 100.00
+[diag]  e1_s400_w1
+    d2_energy       6.961e-04  5.102e-04 -1.86e-04 1.86e-04
+    mean_run_len    3.287e+01  3.613e+01 +3.26e+00 3.27e+00
+
+================== 汇总 ==================
+config              TOTAL ddpm_m sp_acf dg_acf uncond tail_c wasser sp_kur  |    d2_gap  run_gap   vol_gap
+----------------------------------------------------------------------------------------------------------
+e1_s200_w1          51.01  43.05  38.85  42.44  41.00  46.65  86.96  59.02  | -1.44e-04    +3.59 -8.77e-03
+e1_s200_w3          50.57  40.28  38.23  42.31  41.13  47.25  87.96  58.99  | -1.35e-04    +3.58 -8.76e-03
+e1_s100_w1.5        50.16  39.82  38.36  41.18  40.20  47.86  85.72  59.18  | -1.70e-04    +3.27 -9.39e-03
+e1_s100_w3          50.15  38.62  38.07  41.80  40.05  47.91  87.50  59.19  | -1.55e-04    +2.96 -9.03e-03
+e1_s400_w1          49.78  37.09  40.39  40.97  42.50  45.74  85.47  58.52  | -1.86e-04    +3.26 -1.01e-02
+e1_s50_w3           48.50  33.91  40.02  40.71  39.64  46.83  82.92  59.14  | -2.08e-04    +6.26 -1.09e-02
+v9_20k_baseline     47.16  29.01  36.98  39.58  40.95  47.27  80.99  60.00  |                             (无诊断)
+e0_s50_w3           46.80  27.73  37.22  39.09  40.86  46.50  81.62  60.12  | -2.25e-04   +19.91 -1.13e-02
+
+说明: gap = fake − real。d2_gap<0=偏平滑; run_gap>0=regime 太黏; vol_gap<0=波动爆发不足。
+      真实自检总分 ≈ 52.47 为上限参照。

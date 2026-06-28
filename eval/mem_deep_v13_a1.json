@@ -1,0 +1,23 @@
+{
+  "L": 512,
+  "n_real": 2845,
+  "guard": 103,
+  "real_ref_dNN_median": 2.6588008332397677,
+  "real_self_copy_frac_p95": 0.0,
+  "real_self_copy_frac_p99": 0.0,
+  "detect": {
+    "a1_L512": {
+      "dNN_median": 0.2324443880393291,
+      "ratio_vs_ref": 0.08742452053322623,
+      "ratio_ci95": [
+        0.08510550312847394,
+        0.09006043428630363
+      ],
+      "raw_pearson_mean": 0.17777812372909352,
+      "copy_frac_p90": 0.144921875,
+      "copy_frac_p95": 0.1447265625,
+      "copy_frac_p99": 0.1447265625,
+      "n_fake": 5120
+    }
+  }
+}

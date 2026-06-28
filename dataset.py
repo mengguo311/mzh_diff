@@ -59,7 +59,7 @@ class TimeSeriesScaler:
         self.std = torch.clamp(self.std, min=1e-8)
 
         print(f"[Scaler] Fitted on {data.shape[0]} samples")
-        for i, name in enumerate(["sp500", "DGS10"]):
+        for i, name in enumerate(config.CHANNEL_COLS):
             print(f"  {name}: mean={self.mean[i]:.6f}, std={self.std[i]:.6f}")
 
     def transform(self, x: torch.Tensor) -> torch.Tensor:
@@ -130,7 +130,9 @@ class TimeSeriesScaler:
         self.std = state["std"]
         self.clip_range = state["clip_range"]
         print(f"[Scaler] Parameters loaded from {path}")
-        for i, name in enumerate(["sp500", "DGS10"]):
+        assert len(self.mean) == len(config.CHANNEL_COLS), \
+            f"scaler 通道数 {len(self.mean)} != CHANNEL_COLS {len(config.CHANNEL_COLS)} (加载了错误通道集的 scaler?)"
+        for i, name in enumerate(config.CHANNEL_COLS):
             print(f"  {name}: mean={self.mean[i]:.6f}, std={self.std[i]:.6f}")
 
 
@@ -168,14 +170,23 @@ class TimeSeriesDataset(Dataset):
         self.seq_len = seq_len
         self.stride = stride
 
-        # ── 1. 读取数据 ──
-        df = pd.read_csv(data_path, index_col=0)
-        assert "sp500" in df.columns and "DGS10" in df.columns, \
-            f"CSV must contain 'sp500' and 'DGS10' columns, got {list(df.columns)}"
+        # ── 1. 读取数据 (多通道: 主CSV + 按需 FRED 辅助源, 按 CHANNEL_COLS 选列/定通道序) ──
+        df_main = pd.read_csv(data_path, index_col=0)
+        need_fred = any(config.CHANNEL_SOURCES.get(c) == "fred" for c in config.CHANNEL_COLS)
+        if need_fred:
+            df_fred = pd.read_csv(config.FRED_PATH, index_col=0)
+            df = pd.concat([df_main, df_fred], axis=1)         # 两文件 index 已对齐项目交易日
+        else:
+            df = df_main
+        miss = [c for c in config.CHANNEL_COLS if c not in df.columns]
+        assert not miss, f"缺通道列 {miss}; 可选 {list(df.columns)}"
 
-        # ── 2. 前向填充缺失值 ──
-        df = df[["sp500", "DGS10"]].ffill().bfill()
-        raw_data = df.values.astype(np.float32)  # (N, 2)
+        # ── 2. 选通道(顺序=通道编号) + 截到所有通道非NaN起始 + 起点后内部缺口 ffill ──
+        df = df[config.CHANNEL_COLS]
+        valid = df.notna().all(axis=1)                          # 所有通道都有值的行
+        first = valid.idxmax()                                  # 最早全通道非NaN起点 (利用 1976/1977/2003 边界)
+        df = df.loc[first:].ffill().bfill()                     # 起点后补内部缺口(如 DGS30 缺口); 不跨序列首回填
+        raw_data = df.values.astype(np.float32)                 # (N, C)
 
         print(f"[Dataset] Loaded {len(raw_data)} rows from {data_path}")
 
@@ -200,14 +211,131 @@ class TimeSeriesDataset(Dataset):
     def __len__(self) -> int:
         return len(self.indices)
 
-    def __getitem__(self, idx: int) -> torch.Tensor:
+    @staticmethod
+    def _ctx_stats(s: torch.Tensor) -> torch.Tensor:
+        """v13 C1 — 单通道上下文富统计 (N_CTX_FEAT 维): std/|r|均值/均值/|r|-acf1/skew/kurt/末值/d2能量。"""
+        a = s.abs()
+        am = a - a.mean()
+        var = (am * am).mean().clamp(min=1e-8)
+        acf1 = (am[1:] * am[:-1]).mean() / var
+        sc = s - s.mean()
+        sd = sc.std().clamp(min=1e-8)
+        z = sc / sd
+        d2 = s[2:] - 2.0 * s[1:-1] + s[:-2]
+        return torch.stack([s.std(), a.mean(), s.mean(), acf1,
+                            (z ** 3).mean(), (z ** 4).mean() - 3.0, s[-1], (d2 * d2).mean()])
+
+    def _cond_from(self, window: torch.Tensor, ctx: Optional[torch.Tensor]) -> torch.Tensor:
+        """根据开关返回条件向量: C1 富条件(前置上下文统计; 无前置→零) 或 原 2 维初值。"""
+        if config.USE_CONTEXT_COND:
+            if ctx is None:                                   # 起始窗/bootstrap 无前置上下文 → null
+                return torch.zeros(config.CHANNELS * config.N_CTX_FEAT)
+            return torch.cat([self._ctx_stats(ctx[:, ch]) for ch in range(config.CHANNELS)])
+        return window[0]                                      # (C,) 原起点初值
+
+    def _make_boot_window(self) -> torch.Tensor:
         """
-        返回单个样本: (2, 128) — 通道优先。
+        v13 A2 — on-the-fly moving-block bootstrap 增广窗 (标准化空间, (seq_len, 2))。
+        取 (ceil(L/B)+1) 个随机【真实块】(各长 BLOCK_LEN) 首尾相接, 再【随机裁剪】出 L 长
+        —— 整块搬运保块内 stylized fact, 随机裁剪让接缝位置逐窗不同(避免固定周期伪结构),
+        只造新的宏观次序排列。块取自已标准化(±clip)的 self.data, 故无需再裁剪/归一化。
         """
-        start = self.indices[idx]
-        window = self.data[start : start + self.seq_len]  # (128, 2)
-        return window.T  # (2, 128) — 通道 × 序列长度
+        L, B = self.seq_len, config.BLOCK_LEN
+        N = self.data.shape[0]
+        n_blocks = (L + B - 1) // B + 1                      # 多取一块以便随机移接缝
+        starts = [int(torch.randint(0, N - B + 1, (1,))) for _ in range(n_blocks)]
+        cat = torch.cat([self.data[s:s + B] for s in starts], dim=0)   # (n_blocks*B, 2) > L
+        off = int(torch.randint(0, cat.shape[0] - L + 1, (1,)))
+        return cat[off:off + L]                              # (seq_len, 2)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        返回单个样本及其起点条件向量: (x, c)
+        - x: (2, seq_len) 通道优先的时序数据
+        - c: (2,) 序列起点的初始条件向量
+        v13 A2: 若 USE_BLOCK_BOOTSTRAP, 以 BOOT_FRAC 概率改返回一个 on-the-fly bootstrap 增广窗。
+        v13 C1: 若 USE_CONTEXT_COND, c 改为前置上下文窗的富统计向量 (bootstrap/起始窗→null)。
+        """
+        if config.USE_BLOCK_BOOTSTRAP and bool(torch.rand(1) < config.BOOT_FRAC):
+            window = self._make_boot_window()                 # (seq_len, 2)
+            ctx = None                                        # bootstrap 窗无真实前置上下文
+        else:
+            start = self.indices[idx]
+            window = self.data[start : start + self.seq_len]  # (seq_len, 2)
+            ctx = self.data[start - self.seq_len : start] if start >= self.seq_len else None
+        x = window.T                       # (2, seq_len)
+        c = self._cond_from(window, ctx)   # (2,) 或 (2*N_CTX_FEAT,)
+        return x, c
 
     def get_scaler(self) -> TimeSeriesScaler:
         """获取 scaler 实例（用于保存或传递给生成阶段）。"""
         return self.scaler
+
+
+# ──────────────────────────────────────────────
+# MultiAssetDataset (E4 / B1): 多市场池化预训练
+# ──────────────────────────────────────────────
+
+class MultiAssetDataset(TimeSeriesDataset):
+    """E4 多资产跨市场预训练数据集 —— 池化 US + 多国(jp/uk/eu)【同构对】(股指日 log 收益 + 本国
+    10Y 日差分), 注入真·独立宏观窗(独立窗 ~29→~77 @L512)。
+
+    关键设计(防泄露/正确迁移):
+      - **per-market z-score**: 每市场用自身 mean/std 标准化(+CLIP_RANGE 截断) → 各市场单位方差
+        可比, 且外部市场绝不污染 US 量纲;
+      - **窗不跨市场**: 滑窗只在单一市场内部; 上下文 ctx 也只取同市场前置窗(起始窗→null);
+      - get_scaler() 返回 **US scaler**(供阶段2微调/生成对齐; 预训阶段本身不生成)。
+    阶段2 微调: 关 USE_MULTIASSET, train.py --init_from <预训ckpt> 在 US 上继续(仅载权重)。
+    复用父类 _ctx_stats/_cond_from(口径与单源完全一致)。block-bootstrap 在预训阶段不启用。
+    """
+
+    def __init__(self, seq_len: int = config.SEQ_LEN, stride: int = config.STRIDE,
+                 scaler: Optional[TimeSeriesScaler] = None):
+        Dataset.__init__(self)
+        self.seq_len = seq_len
+        self.stride = stride
+        self.blocks: list[torch.Tensor] = []     # 各市场标准化后 (N_m, C)
+        self.index: list[tuple[int, int]] = []   # (block_id, start) 池化窗索引
+        us_scaler = None
+        for mkt in config.MULTIASSET_MARKETS:
+            raw = self._load_market_raw(mkt)                     # (N, C) 原始量级
+            sc = TimeSeriesScaler(clip_range=config.CLIP_RANGE)
+            sc.fit(raw)                                          # per-market z-score
+            data = sc.transform(torch.tensor(raw, dtype=torch.float32))   # (N, C) 标准化+clip
+            bid = len(self.blocks)
+            self.blocks.append(data)
+            n_win = 0
+            for s in range(0, len(data) - seq_len + 1, stride):
+                self.index.append((bid, s)); n_win += 1
+            print(f"[MultiAsset] {mkt:4} {len(data):6d} 行 → {n_win} 窗 (独立 ~{len(data)//seq_len})")
+            if mkt == "us":
+                us_scaler = sc
+        if us_scaler is None:                                    # 未含 us 时回退首个市场 scaler
+            us_scaler = TimeSeriesScaler(clip_range=config.CLIP_RANGE)
+            us_scaler.fit(self._load_market_raw(config.MULTIASSET_MARKETS[0]))
+        self.scaler = scaler or us_scaler
+        print(f"[MultiAsset] 池化 {len(config.MULTIASSET_MARKETS)} 市场 → {len(self.index)} 窗 "
+              f"(seq_len={seq_len}, stride={stride}); get_scaler=US")
+
+    def __len__(self) -> int:
+        return len(self.index)
+
+    @staticmethod
+    def _load_market_raw(mkt: str) -> np.ndarray:
+        """加载单市场 (N, CHANNELS) 原始量级双通道 [风险资产日收益, 10Y 日差分]。"""
+        if mkt == "us":
+            df = pd.read_csv(config.DATA_PATH, index_col=0)[config.CHANNEL_COLS]
+            df = df.loc[df.notna().all(axis=1).idxmax():].ffill().bfill()
+            return df.values.astype(np.float32)
+        path = os.path.join(config.MULTIASSET_DIR, f"{mkt}.csv")
+        df = pd.read_csv(path)[["eq_ret", "y10_diff"]].dropna()
+        return df.values.astype(np.float32)
+
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+        bid, start = self.index[idx]
+        data = self.blocks[bid]                                  # (N_m, C) 该市场标准化数据
+        window = data[start: start + self.seq_len]               # (seq_len, C)
+        ctx = data[start - self.seq_len: start] if start >= self.seq_len else None  # 同市场前置窗
+        x = window.T                                             # (C, seq_len)
+        c = self._cond_from(window, ctx)                         # 复用父类口径
+        return x, c

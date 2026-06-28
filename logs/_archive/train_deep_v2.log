@@ -1,0 +1,161 @@
+nohup: ignoring input
+[Config] CUDA detected: NVIDIA RTX A6000 x2
+[Utils] Random seed set to 42
+============================================================
+  1D-DDPM Training Pipeline
+============================================================
+  Device:     cuda
+  Epochs:     1000
+  Batch size: 64
+  LR:         0.0002
+  T:          1000
+============================================================
+
+[Phase 1] Loading data...
+[Dataset] Loaded 14734 rows from /home/u00134/data/train_sp500_us10y.csv
+[Scaler] Fitted on 14734 samples
+  sp500: mean=0.000315, std=0.010551
+  DGS10: mean=0.000026, std=0.066899
+[Dataset] 2922 windows (seq_len=128, stride=5, total_rows=14734)
+  Samples:      2922
+  Batches/epoch: 45
+
+[Phase 2] Building model...
+  U-Net parameters: 12,739,074
+[Utils] Run directory: /home/u00134/src/logs/run_20260527_172015
+[Utils] Config snapshot saved to /home/u00134/src/logs/run_20260527_172015/config.json
+[Scaler] Parameters saved to /home/u00134/src/logs/run_20260527_172015/scaler.pt
+
+[Phase 3] Training starts (epoch 0 → 999)...
+------------------------------------------------------------
+  Epoch    0/1000  |  Loss: 0.340414  |  LR: 2.00e-04  |  Time: 2.81s
+  Epoch   10/1000  |  Loss: 0.241735  |  LR: 2.00e-04  |  Time: 2.12s
+  Epoch   20/1000  |  Loss: 0.241758  |  LR: 2.00e-04  |  Time: 2.09s
+  Epoch   30/1000  |  Loss: 0.238016  |  LR: 2.00e-04  |  Time: 2.09s
+  Epoch   40/1000  |  Loss: 0.234281  |  LR: 1.99e-04  |  Time: 2.02s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0049.pt
+  Epoch   50/1000  |  Loss: 0.225421  |  LR: 1.99e-04  |  Time: 1.98s
+  Epoch   60/1000  |  Loss: 0.219081  |  LR: 1.98e-04  |  Time: 2.13s
+  Epoch   70/1000  |  Loss: 0.210298  |  LR: 1.98e-04  |  Time: 2.33s
+  Epoch   80/1000  |  Loss: 0.198739  |  LR: 1.97e-04  |  Time: 2.09s
+  Epoch   90/1000  |  Loss: 0.202916  |  LR: 1.96e-04  |  Time: 2.19s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0099.pt
+  Epoch  100/1000  |  Loss: 0.177177  |  LR: 1.95e-04  |  Time: 1.97s
+  Epoch  110/1000  |  Loss: 0.184517  |  LR: 1.94e-04  |  Time: 2.06s
+  Epoch  120/1000  |  Loss: 0.172972  |  LR: 1.93e-04  |  Time: 2.09s
+  Epoch  130/1000  |  Loss: 0.169092  |  LR: 1.92e-04  |  Time: 2.14s
+  Epoch  140/1000  |  Loss: 0.159819  |  LR: 1.90e-04  |  Time: 2.12s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0149.pt
+  Epoch  150/1000  |  Loss: 0.155991  |  LR: 1.89e-04  |  Time: 2.07s
+  Epoch  160/1000  |  Loss: 0.145960  |  LR: 1.88e-04  |  Time: 2.10s
+  Epoch  170/1000  |  Loss: 0.145593  |  LR: 1.86e-04  |  Time: 2.10s
+  Epoch  180/1000  |  Loss: 0.139911  |  LR: 1.84e-04  |  Time: 2.09s
+  Epoch  190/1000  |  Loss: 0.140865  |  LR: 1.83e-04  |  Time: 2.15s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0199.pt
+  Epoch  200/1000  |  Loss: 0.133201  |  LR: 1.81e-04  |  Time: 1.97s
+  Epoch  210/1000  |  Loss: 0.131393  |  LR: 1.79e-04  |  Time: 2.10s
+  Epoch  220/1000  |  Loss: 0.132157  |  LR: 1.77e-04  |  Time: 2.10s
+  Epoch  230/1000  |  Loss: 0.119697  |  LR: 1.75e-04  |  Time: 2.12s
+  Epoch  240/1000  |  Loss: 0.125953  |  LR: 1.73e-04  |  Time: 2.10s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0249.pt
+  Epoch  250/1000  |  Loss: 0.116116  |  LR: 1.71e-04  |  Time: 2.20s
+  Epoch  260/1000  |  Loss: 0.119305  |  LR: 1.68e-04  |  Time: 2.12s
+  Epoch  270/1000  |  Loss: 0.114184  |  LR: 1.66e-04  |  Time: 2.02s
+  Epoch  280/1000  |  Loss: 0.111686  |  LR: 1.64e-04  |  Time: 2.16s
+  Epoch  290/1000  |  Loss: 0.110436  |  LR: 1.61e-04  |  Time: 2.05s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0299.pt
+  Epoch  300/1000  |  Loss: 0.107427  |  LR: 1.59e-04  |  Time: 2.05s
+  Epoch  310/1000  |  Loss: 0.105024  |  LR: 1.56e-04  |  Time: 2.16s
+  Epoch  320/1000  |  Loss: 0.106365  |  LR: 1.54e-04  |  Time: 2.16s
+  Epoch  330/1000  |  Loss: 0.104986  |  LR: 1.51e-04  |  Time: 2.13s
+  Epoch  340/1000  |  Loss: 0.100285  |  LR: 1.48e-04  |  Time: 2.17s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0349.pt
+  Epoch  350/1000  |  Loss: 0.098117  |  LR: 1.45e-04  |  Time: 2.08s
+  Epoch  360/1000  |  Loss: 0.100845  |  LR: 1.43e-04  |  Time: 2.47s
+  Epoch  370/1000  |  Loss: 0.099972  |  LR: 1.40e-04  |  Time: 2.11s
+  Epoch  380/1000  |  Loss: 0.099856  |  LR: 1.37e-04  |  Time: 2.16s
+  Epoch  390/1000  |  Loss: 0.093275  |  LR: 1.34e-04  |  Time: 2.28s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0399.pt
+  Epoch  400/1000  |  Loss: 0.095164  |  LR: 1.31e-04  |  Time: 2.18s
+  Epoch  410/1000  |  Loss: 0.094903  |  LR: 1.28e-04  |  Time: 2.05s
+  Epoch  420/1000  |  Loss: 0.090860  |  LR: 1.25e-04  |  Time: 2.19s
+  Epoch  430/1000  |  Loss: 0.091735  |  LR: 1.22e-04  |  Time: 2.16s
+  Epoch  440/1000  |  Loss: 0.092596  |  LR: 1.19e-04  |  Time: 2.06s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0449.pt
+  Epoch  450/1000  |  Loss: 0.086388  |  LR: 1.16e-04  |  Time: 2.05s
+  Epoch  460/1000  |  Loss: 0.084966  |  LR: 1.13e-04  |  Time: 2.04s
+  Epoch  470/1000  |  Loss: 0.087968  |  LR: 1.10e-04  |  Time: 2.05s
+  Epoch  480/1000  |  Loss: 0.085456  |  LR: 1.06e-04  |  Time: 2.03s
+  Epoch  490/1000  |  Loss: 0.083672  |  LR: 1.03e-04  |  Time: 2.03s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0499.pt
+  Epoch  500/1000  |  Loss: 0.082337  |  LR: 1.00e-04  |  Time: 1.98s
+  Epoch  510/1000  |  Loss: 0.082986  |  LR: 9.71e-05  |  Time: 2.09s
+  Epoch  520/1000  |  Loss: 0.078135  |  LR: 9.39e-05  |  Time: 2.10s
+  Epoch  530/1000  |  Loss: 0.083316  |  LR: 9.08e-05  |  Time: 2.17s
+  Epoch  540/1000  |  Loss: 0.078526  |  LR: 8.77e-05  |  Time: 2.02s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0549.pt
+  Epoch  550/1000  |  Loss: 0.080003  |  LR: 8.46e-05  |  Time: 2.04s
+  Epoch  560/1000  |  Loss: 0.077365  |  LR: 8.15e-05  |  Time: 2.10s
+  Epoch  570/1000  |  Loss: 0.078864  |  LR: 7.85e-05  |  Time: 2.00s
+  Epoch  580/1000  |  Loss: 0.074969  |  LR: 7.55e-05  |  Time: 2.25s
+  Epoch  590/1000  |  Loss: 0.076374  |  LR: 7.24e-05  |  Time: 2.07s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0599.pt
+  Epoch  600/1000  |  Loss: 0.072789  |  LR: 6.95e-05  |  Time: 1.97s
+  Epoch  610/1000  |  Loss: 0.074412  |  LR: 6.65e-05  |  Time: 2.06s
+  Epoch  620/1000  |  Loss: 0.077891  |  LR: 6.36e-05  |  Time: 2.08s
+  Epoch  630/1000  |  Loss: 0.074492  |  LR: 6.07e-05  |  Time: 2.15s
+  Epoch  640/1000  |  Loss: 0.072580  |  LR: 5.79e-05  |  Time: 2.08s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0649.pt
+  Epoch  650/1000  |  Loss: 0.070020  |  LR: 5.50e-05  |  Time: 1.99s
+  Epoch  660/1000  |  Loss: 0.072728  |  LR: 5.23e-05  |  Time: 2.17s
+  Epoch  670/1000  |  Loss: 0.070579  |  LR: 4.96e-05  |  Time: 2.01s
+  Epoch  680/1000  |  Loss: 0.072668  |  LR: 4.69e-05  |  Time: 2.29s
+  Epoch  690/1000  |  Loss: 0.068602  |  LR: 4.43e-05  |  Time: 1.77s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0699.pt
+  Epoch  700/1000  |  Loss: 0.067349  |  LR: 4.18e-05  |  Time: 1.98s
+  Epoch  710/1000  |  Loss: 0.066281  |  LR: 3.93e-05  |  Time: 2.06s
+  Epoch  720/1000  |  Loss: 0.065136  |  LR: 3.68e-05  |  Time: 2.07s
+  Epoch  730/1000  |  Loss: 0.066856  |  LR: 3.45e-05  |  Time: 2.10s
+  Epoch  740/1000  |  Loss: 0.064499  |  LR: 3.22e-05  |  Time: 2.10s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0749.pt
+  Epoch  750/1000  |  Loss: 0.069370  |  LR: 2.99e-05  |  Time: 2.09s
+  Epoch  760/1000  |  Loss: 0.064593  |  LR: 2.78e-05  |  Time: 2.01s
+  Epoch  770/1000  |  Loss: 0.064521  |  LR: 2.57e-05  |  Time: 2.15s
+  Epoch  780/1000  |  Loss: 0.063163  |  LR: 2.36e-05  |  Time: 2.11s
+  Epoch  790/1000  |  Loss: 0.059866  |  LR: 2.17e-05  |  Time: 2.12s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0799.pt
+  Epoch  800/1000  |  Loss: 0.062077  |  LR: 1.98e-05  |  Time: 2.00s
+  Epoch  810/1000  |  Loss: 0.062321  |  LR: 1.80e-05  |  Time: 2.07s
+  Epoch  820/1000  |  Loss: 0.062264  |  LR: 1.63e-05  |  Time: 2.12s
+  Epoch  830/1000  |  Loss: 0.061865  |  LR: 1.47e-05  |  Time: 2.11s
+  Epoch  840/1000  |  Loss: 0.066176  |  LR: 1.32e-05  |  Time: 2.11s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0849.pt
+  Epoch  850/1000  |  Loss: 0.061038  |  LR: 1.17e-05  |  Time: 2.06s
+  Epoch  860/1000  |  Loss: 0.062061  |  LR: 1.03e-05  |  Time: 2.20s
+  Epoch  870/1000  |  Loss: 0.058380  |  LR: 9.06e-06  |  Time: 2.07s
+  Epoch  880/1000  |  Loss: 0.060319  |  LR: 7.87e-06  |  Time: 2.13s
+  Epoch  890/1000  |  Loss: 0.061905  |  LR: 6.78e-06  |  Time: 2.16s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0899.pt
+  Epoch  900/1000  |  Loss: 0.061180  |  LR: 5.77e-06  |  Time: 2.00s
+  Epoch  910/1000  |  Loss: 0.059691  |  LR: 4.86e-06  |  Time: 2.06s
+  Epoch  920/1000  |  Loss: 0.058914  |  LR: 4.05e-06  |  Time: 2.14s
+  Epoch  930/1000  |  Loss: 0.059679  |  LR: 3.33e-06  |  Time: 2.20s
+  Epoch  940/1000  |  Loss: 0.060571  |  LR: 2.70e-06  |  Time: 2.11s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0949.pt
+  Epoch  950/1000  |  Loss: 0.061698  |  LR: 2.18e-06  |  Time: 2.04s
+  Epoch  960/1000  |  Loss: 0.056890  |  LR: 1.75e-06  |  Time: 2.08s
+  Epoch  970/1000  |  Loss: 0.059596  |  LR: 1.41e-06  |  Time: 2.12s
+  Epoch  980/1000  |  Loss: 0.060398  |  LR: 1.18e-06  |  Time: 2.26s
+  Epoch  990/1000  |  Loss: 0.059037  |  LR: 1.04e-06  |  Time: 2.35s
+  Epoch  999/1000  |  Loss: 0.059052  |  LR: 1.00e-06  |  Time: 2.18s
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_epoch_0999.pt
+[Utils] Checkpoint saved: /home/u00134/src/logs/run_20260527_172015/checkpoint_final.pt
+------------------------------------------------------------
+
+[Done] Training complete!
+  Total time:   2115.9s (35.3 min)
+  Final loss:   0.059052
+  Best loss:    0.053700 (epoch 996)
+  Run dir:      /home/u00134/src/logs/run_20260527_172015
+  Scaler:       /home/u00134/src/logs/run_20260527_172015/scaler.pt
+  Loss history: /home/u00134/src/logs/run_20260527_172015/loss_history.csv

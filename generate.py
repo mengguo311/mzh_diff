@@ -30,14 +30,18 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
-from dataset import TimeSeriesScaler
+from dataset import TimeSeriesDataset, TimeSeriesScaler
 from unet1d import UNet1d
+from dit1d import DiT1D_S, DiT1D_B, DiT1D_L
 from scheduler import DDPMScheduler
 from utils import set_seed, EMA
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="1D-DDPM Generation for Financial Time Series")
+    parser.add_argument("--model", type=str, default="unet",
+                        choices=["unet", "dit-s", "dit-b", "dit-l"],
+                        help="骨干网络: unet / dit-s / dit-b / dit-l (default: unet)")
     parser.add_argument("--checkpoint", type=str, required=True,
                         help="训练 checkpoint 路径 (.pt)")
     parser.add_argument("--scaler", type=str, required=True,
@@ -54,6 +58,14 @@ def parse_args():
                         help="使用 EMA 权重生成 (default: True)")
     parser.add_argument("--no_ema", dest="use_ema", action="store_false",
                         help="使用原始模型权重生成")
+    parser.add_argument("--num_inference_steps", type=int, default=config.GEN_NUM_STEPS,
+                        help=f"DDIM 快速采样步数 (default: {config.GEN_NUM_STEPS})")
+    parser.add_argument("--guidance_scale", "-w", type=float, default=config.GEN_GUIDANCE_SCALE,
+                        help=f"Classifier-Free Guidance 引导权重 w (default: {config.GEN_GUIDANCE_SCALE})")
+    parser.add_argument("--eta", type=float, default=config.GEN_ETA,
+                        help=f"DDIM 随机性 eta (0=确定性, 1≈DDPM; 注入纹理/波动, default: {config.GEN_ETA})")
+    parser.add_argument("--cond_mode", type=str, default="dataset", choices=["dataset", "zero"],
+                        help="条件生成模式 (default: dataset)")
     return parser.parse_args()
 
 
@@ -91,10 +103,12 @@ def generate():
     # ── 2. 加载和解析运行配置 (如果存在) ──
     checkpoint_dir = os.path.dirname(os.path.abspath(args.checkpoint))
     config_json_path = os.path.join(checkpoint_dir, "config.json")
-    
+    run_config = {}                       # 快照(若 config.json 存在则填充); 多通道列名/量化从此恢复
+
     # 默认值使用全局 config 中的值
     seq_len = config.SEQ_LEN
     channels = config.CHANNELS
+    cond_dim = config.COND_DIM
     channel_dims = config.CHANNEL_DIMS
     time_emb_dim = config.TIME_EMB_DIM
     T = config.T
@@ -108,6 +122,7 @@ def generate():
                 run_config = json.load(f)
             seq_len = run_config.get("seq_len", seq_len)
             channels = run_config.get("channels", channels)
+            cond_dim = run_config.get("cond_dim", cond_dim)
             channel_dims = run_config.get("channel_dims", channel_dims)
             time_emb_dim = run_config.get("time_emb_dim", time_emb_dim)
             T = run_config.get("T", T)
@@ -119,11 +134,23 @@ def generate():
 
     # ── 3. 加载模型 ──
     print("\n[Step 2] Loading model...")
-    model = UNet1d(
-        in_channels=channels,
-        channel_dims=channel_dims,
-        time_emb_dim=time_emb_dim
-    ).to(device)
+    if args.model == "unet":
+        model = UNet1d(
+            in_channels=channels,
+            channel_dims=channel_dims,
+            time_emb_dim=time_emb_dim
+        ).to(device)
+    else:
+        model_builders = {
+            "dit-s": DiT1D_S,
+            "dit-b": DiT1D_B,
+            "dit-l": DiT1D_L,
+        }
+        model = model_builders[args.model](
+            in_channels=channels,
+            seq_len=seq_len,
+            cond_dim=cond_dim,
+        ).to(device)
     
     scheduler = DDPMScheduler(
         num_timesteps=T,
@@ -151,7 +178,20 @@ def generate():
     print(f"  Trained epoch: {epoch}")
 
     num_params = sum(p.numel() for p in model.parameters())
-    print(f"  U-Net parameters: {num_params:,}")
+    print(f"  {args.model.upper()} parameters: {num_params:,}")
+
+    # ── 3.5 准备初始条件 ──
+    if args.cond_mode == "dataset":
+        print("\n[Step 2.5] Loading dataset for conditional generation initial states...")
+        dataset = TimeSeriesDataset(scaler=scaler)
+        print(f"  Dataset loaded. Number of available conditions: {len(dataset)}")
+        rng = np.random.default_rng(args.seed)
+        sampled_indices = rng.choice(len(dataset), size=args.num_samples, replace=True)
+        sampled_conditions = [dataset[idx][1] for idx in sampled_indices]
+        sampled_conditions = torch.stack(sampled_conditions).to(device)  # (num_samples, cond_dim)
+    else:
+        print("\n[Step 2.5] Using zero vector as unconditional/null conditions...")
+        sampled_conditions = torch.zeros(args.num_samples, cond_dim, device=device)
 
     # ── 4. 分批生成 ──
     print(f"\n[Step 3] Generating {args.num_samples} paths...")
@@ -164,16 +204,28 @@ def generate():
 
     while num_remaining > 0:
         batch = min(args.batch_size, num_remaining)
+        batch_start_idx = args.num_samples - num_remaining
         batch_idx += 1
 
         print(f"\n  --- Batch {batch_idx} ({batch} samples) ---")
 
         # 初始化纯高斯噪声
         x_T = torch.randn(batch, channels, seq_len, device=device)
+        
+        # 提取当前 batch 的条件向量
+        c_batch = sampled_conditions[batch_start_idx : batch_start_idx + batch]
 
-        # 逆向去噪
+        # 确定性 DDIM 逆向去噪
         with torch.no_grad():
-            x_0 = scheduler.p_sample_loop(model, x_T=x_T, verbose=True)
+            x_0 = scheduler.ddim_sample_loop(
+                model=model,
+                c=c_batch,
+                x_T=x_T,
+                num_inference_steps=args.num_inference_steps,
+                guidance_scale=args.guidance_scale,
+                eta=args.eta,
+                verbose=True
+            )
 
         # 还原真实金融量级
         x_real = scaler.inverse_transform(x_0)  # (batch, 2, seq_len)
@@ -185,23 +237,31 @@ def generate():
 
     gen_time = time.time() - gen_start
 
-    # ── 5. 拼接并保存 CSV ──
+    # ── 5. 拼接并保存 CSV (N 通道泛化; 保下游 eval 的 sp500_*/dgs10_* 兼容列名) ──
     print(f"\n[Step 4] Saving to CSV...")
-    all_samples = torch.cat(all_samples, dim=0)  # (N, 2, seq_len)
+    all_samples = torch.cat(all_samples, dim=0)  # (N, C, seq_len)
 
-    # 拆分双通道
-    sp500_data = all_samples[:, 0, :].numpy()  # (N, seq_len)
-    dgs10_data = all_samples[:, 1, :].numpy()  # (N, seq_len)
+    # 通道名/量化/输出前缀: 优先 run_config 快照, 回退 config 全局
+    names    = run_config.get("channel_cols", getattr(config, "CHANNEL_COLS", ["sp500", "DGS10"]))
+    qgrid    = run_config.get("quantize_grid") or getattr(config, "QUANTIZE_GRID", {}) or {}
+    prefix   = run_config.get("output_prefix") or getattr(config, "OUTPUT_PREFIX", {}) or {}
+    legacy_q = getattr(config, "DGS10_QUANTIZE", None)   # 向后兼容 line1 标量量化
 
-    # 拼接为宽表: (N, 2 * seq_len)
-    combined = np.concatenate([sp500_data, dgs10_data], axis=1)
+    samples = all_samples.numpy().astype(np.float64)     # (N, C, seq_len); float64 保量化网格干净
+    blocks, columns = [], []
+    for ch, name in enumerate(names):
+        arr = samples[:, ch, :]                          # (N, seq_len)
+        g = qgrid.get(name)
+        if g is None and name == "DGS10" and legacy_q:   # line1 兼容: 标量 DGS10_QUANTIZE
+            g = legacy_q
+        if g:                                            # 利率通道吸附到网格 (sp500 不在 qgrid → 跳过)
+            arr = np.round(arr / g) * g
+            print(f"  [{name}量化] 吸附到 {g} 网格 (匹配真实量化指纹)")
+        blocks.append(arr)
+        col = prefix.get(name, name.lower())             # ch0→sp500, ch1→dgs10(小写兼容), 新通道→真名小写
+        columns += [f"{col}_{i}" for i in range(seq_len)]
 
-    # 列名: sp500_0...sp500_{seq_len-1}, dgs10_0...dgs10_{seq_len-1}
-    columns = (
-        [f"sp500_{i}" for i in range(seq_len)]
-        + [f"dgs10_{i}" for i in range(seq_len)]
-    )
-
+    combined = np.concatenate(blocks, axis=1)            # (N, C * seq_len)
     df = pd.DataFrame(combined, columns=columns)
     df.to_csv(output_path, index=False)
 
@@ -214,17 +274,10 @@ def generate():
     print(f"  Total time:     {gen_time:.1f}s")
     print(f"  Time per sample: {gen_time/args.num_samples*1000:.2f}ms")
     print()
-    print("  ── SP500 日收益率统计 ──")
-    print(f"    Mean:  {sp500_data.mean():.6f}")
-    print(f"    Std:   {sp500_data.std():.6f}")
-    print(f"    Min:   {sp500_data.min():.6f}")
-    print(f"    Max:   {sp500_data.max():.6f}")
-    print()
-    print("  ── DGS10 日差分统计 ──")
-    print(f"    Mean:  {dgs10_data.mean():.6f}")
-    print(f"    Std:   {dgs10_data.std():.6f}")
-    print(f"    Min:   {dgs10_data.min():.6f}")
-    print(f"    Max:   {dgs10_data.max():.6f}")
+    for ch, name in enumerate(names):                    # 逐通道统计 (N 通道泛化)
+        arr = blocks[ch]
+        print(f"  ── {name} 统计 ──")
+        print(f"    Mean: {arr.mean():.6f}  Std: {arr.std():.6f}  Min: {arr.min():.6f}  Max: {arr.max():.6f}")
 
 
 if __name__ == "__main__":

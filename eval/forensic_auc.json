@@ -1,0 +1,23 @@
+{
+  "L": 2048,
+  "guard": 410,
+  "n_real": 2538,
+  "calib_real_vs_real": {
+    "stylized": 0.5328393726338561,
+    "stylized+dgsfp": 0.5302325581395348
+  },
+  "detect": {
+    "v10": {
+      "auc_stylized": 0.9717926232993197,
+      "auc_stylized_dgsfp": 1.0,
+      "dgsfp_marginal": 0.028207376700680298,
+      "n_fake": 5120
+    },
+    "v12": {
+      "auc_stylized": 0.06453948767006804,
+      "auc_stylized_dgsfp": 1.0,
+      "dgsfp_marginal": 0.935460512329932,
+      "n_fake": 5120
+    }
+  }
+}
