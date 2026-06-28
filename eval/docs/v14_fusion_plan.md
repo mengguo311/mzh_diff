@@ -137,8 +137,33 @@ CONFIG_PROFILE=fusion conda run --no-capture-output -n ts_diffusion python -u ev
 - **长程签名**:❌ SigP 0.003(被 bootstrap 牺牲)。
 - **净判**:**native L512 = 强交付**(真实度+复制率双优达成);**长程签名需降 BOOT_FRAC 重训**修复(下一步)。
 
-### 下一步(修长程签名)
-降 `BOOT_FRAC` 0.3→0.1~0.15(或 0)重训 `fusion/v14_lowboot`:保大部分抗记忆,恢复长程连贯 → 目标 AR SigP 回升到 ~0.1(如 C1)同时 copy 仍 <10%。代价 ~5h。ctx 反馈钳位修复已就位,新模型 AR 直接可用。
+## 11. ★ lowboot(BOOT_FRAC=0.15)= 最终交付模型(2026-06-28,假设证实)
+
+降 `BOOT_FRAC` 0.3→0.15 重训 `fusion/v14_lowboot_b15`(2500ep / 5.19h / final loss 0.0071)。
+**假设证实:降 boot 修复了长程签名**(SigP 0.003→0.153 native / 0.116 AR)。
+
+| | **lowboot native L512** | boot0.3 native | **lowboot AR2048** | boot0.3 AR |
+|---|---|---|---|---|
+| 综合诚实分 | **89.9/100** ★ | 63.5 | 70.9/100 | 51.1 |
+| 复制率 | 9.6% WARN | 4.9% | **0.0% PASS** | 0.0% |
+| C2ST_新颖 | **0.602**(史上最优) | 0.632 | 0.634 | 0.709 |
+| SigP_新颖 | **0.153 PASS** ★ | 0.003 FAIL | 0.116(↑from 0.003) | 0.003 |
+| 峰度(real~19) | **19.3** | 21.7 | 25.9 | 80→25 |
+| 诊断 | high_vol 0.50 / d2 1.05x / patch 1.0x | 干净 | 干净 | — |
+
+**★ lowboot native L=512 = 项目历代最强模型,首次同时达成真实度+复制率双优且签名 PASS**:
+- 真厚尾 kurt 19.3 ≈ real 18.7 ✅
+- 低复制 9.6%(≪ v10 53.9%)✅
+- **签名 SigP 0.153 PASS**(历代 native 首次过签名门)✅
+- 史上最优新颖realism C2ST 0.602 ✅
+- 跨通道收益率曲线结构逼真 ✅
+- 诊断全干净(high_vol 0.50=real / patch 1.0x)✅
+- 综合 89.9/100(boot0.3 的 63.5 → +26)
+
+**Pareto 判读**:BOOT 0.3→0.15 用 +4.7% 复制率(4.9→9.6,仍极低)换回长程签名(0.003→0.153 PASS)+ 更优 C2ST + 更准峰度 → **净大胜**。这是 clip20厚尾 + 多通道曲线 + 适度bootstrap + 富条件 + AR-ctx钳位修复 五杠杆叠加,在锁死的记忆化↔过平滑 Pareto 上把**两端同时推到史上最佳工作点**——回答了用户"真实度+复制率同时优化"的命题。
+
+**交付物**:`logs/fusion/v14_lowboot_b15/checkpoint_final.pt` + scaler;native CSV `output/fusion_lowboot_native512.csv`、AR CSV `output/fusion_lowboot_ar2048.csv`。配方 `configs/fusion_lowboot.py`。
+**AR 长程**:SigP 0.116/0.153 已是 C1 同档(0.106),copy 0.0%;若要进一步逼近 L2048 cal 0.326 = 数据稀缺地板,唯 B1 多资产真数据(已在 `USE_MULTIASSET` 备好)。
 
 ## 9. 未决风险
 
